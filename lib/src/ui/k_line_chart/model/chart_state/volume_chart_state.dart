@@ -1,0 +1,4 @@
+enum VolumeChartState {
+  volume,
+  none,
+}
