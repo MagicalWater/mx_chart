@@ -38,7 +38,7 @@ class KdjCalculator {
     for (var i = 0; i < datas.length; i++) {
       final data = datas[i];
       final closePrice = data.close;
-      int startIndex = i - 13;
+      int startIndex = i - (period - 1);
       if (startIndex < 0) {
         startIndex = 0;
       }
@@ -67,7 +67,7 @@ class KdjCalculator {
 
       if (i == period - 1 || i == period) {
         data.indicatorData.kdj = IndicatorKDJ(k: k, d: 0, j: 0);
-      } else if (i > 14) {
+      } else if (i > period) {
         final j = (3 * k) - (2 * d);
         data.indicatorData.kdj = IndicatorKDJ(k: k, d: d, j: j);
       }

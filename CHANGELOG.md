@@ -1,3 +1,6 @@
+## 1.0.1+2
+- Fix KDJ indicator calculate no apply period.
+
 ## 1.0.1+1
 - Tech Indicator Calculator separate.
 
