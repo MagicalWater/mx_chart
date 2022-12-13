@@ -1,6 +1,4 @@
-import '../indicator_setting/indicator_setting.dart';
-import 'chart_indicator_calculate.dart';
-import 'indicator/indicator.dart';
+import 'package:mx_chart/mx_chart.dart';
 
 export 'indicator/indicator.dart';
 
@@ -106,7 +104,7 @@ extension IndicatorCalculateExtension on List<KLineData> {
   void calculateMA({
     List<int> periods = const [5, 10, 20],
   }) {
-    ChartIndicatorCalculator.calculateMA(periods: periods, datas: this);
+    MaCalculator.calculateMA(periods: periods, datas: this);
   }
 
   /// 計算boll線
@@ -114,7 +112,7 @@ extension IndicatorCalculateExtension on List<KLineData> {
     int period = 20,
     int bandwidth = 2,
   }) {
-    ChartIndicatorCalculator.calculateBOLL(
+    BollCalculator.calculateBOLL(
       period: period,
       bandwidth: bandwidth,
       datas: this,
@@ -127,7 +125,7 @@ extension IndicatorCalculateExtension on List<KLineData> {
     int longPeriod = 26,
     int difPeriod = 9,
   }) {
-    ChartIndicatorCalculator.calculateMACD(
+    MacdCalculator.calculateMACD(
       shortPeriod: shortPeriod,
       longPeriod: longPeriod,
       difPeriod: difPeriod,
@@ -139,7 +137,7 @@ extension IndicatorCalculateExtension on List<KLineData> {
   void calculateRSI({
     List<int> periods = const [6, 12, 24],
   }) {
-    ChartIndicatorCalculator.calculateRSI(periods: periods, datas: this);
+    RsiCalculator.calculateRSI(periods: periods, datas: this);
   }
 
   /// 計算隨機指標
@@ -148,7 +146,7 @@ extension IndicatorCalculateExtension on List<KLineData> {
     int maPeriod1 = 3,
     int maPeriod2 = 3,
   }) {
-    ChartIndicatorCalculator.calculateKDJ(
+    KdjCalculator.calculateKDJ(
       period: period,
       maPeriod1: maPeriod1,
       maPeriod2: maPeriod2,
@@ -160,6 +158,6 @@ extension IndicatorCalculateExtension on List<KLineData> {
   void calculateWR({
     List<int> periods = const [6, 13],
   }) {
-    ChartIndicatorCalculator.calculateWR(periods: periods, datas: this);
+    WrCalculator.calculateWR(periods: periods, datas: this);
   }
 }

@@ -28,7 +28,7 @@ packages:
       name: decimal
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.1"
+    version: "2.3.2"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -87,14 +87,14 @@ packages:
       name: path
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.2"
+    version: "1.8.3"
   rational:
     dependency: "direct main"
     description:
       name: rational
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.1"
+    version: "2.2.2"
   sky_engine:
     dependency: transitive
     description: flutter
