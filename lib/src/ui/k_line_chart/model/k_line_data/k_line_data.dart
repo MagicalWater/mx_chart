@@ -100,11 +100,57 @@ extension IndicatorCalculateExtension on List<KLineData> {
     calculateWR(periods: indicatorSetting.wrSetting.periods);
   }
 
+  void calculateAllIndicatorAtLast({
+    IndicatorSetting indicatorSetting = const IndicatorSetting(),
+    required List<KLineData> newData,
+  }) {
+    calculateMaAtLast(
+      periods: indicatorSetting.maSetting.periods,
+      newData: newData,
+    );
+    calculateBollAtLast(
+      period: indicatorSetting.bollSetting.period,
+      bandwidth: indicatorSetting.bollSetting.bandwidth,
+      newData: newData,
+    );
+    calculateMacdAtLast(
+      shortPeriod: indicatorSetting.macdSetting.shortPeriod,
+      longPeriod: indicatorSetting.macdSetting.longPeriod,
+      difPeriod: indicatorSetting.macdSetting.difPeriod,
+      newData: newData,
+    );
+    calculateRsiAtLast(
+      periods: indicatorSetting.rsiSetting.periods,
+      newData: newData,
+    );
+    calculateKdjAtLast(
+      period: indicatorSetting.kdjSetting.period,
+      maPeriod1: indicatorSetting.kdjSetting.maPeriod1,
+      maPeriod2: indicatorSetting.kdjSetting.maPeriod2,
+      newData: newData,
+    );
+    calculateWrAtLast(
+      periods: indicatorSetting.wrSetting.periods,
+      newData: newData,
+    );
+  }
+
   /// 計算收盤價均線
   void calculateMA({
     List<int> periods = const [5, 10, 20],
   }) {
     MaCalculator.calculateMA(periods: periods, datas: this);
+  }
+
+  void calculateMaAtLast({
+    List<int> periods = const [5, 10, 20],
+    required List<KLineData> newData,
+  }) {
+    MaCalculator.calculateMaAtLast(
+      periods: periods,
+      oriData: this,
+      newData: newData,
+    );
   }
 
   /// 計算boll線
@@ -116,6 +162,19 @@ extension IndicatorCalculateExtension on List<KLineData> {
       period: period,
       bandwidth: bandwidth,
       datas: this,
+    );
+  }
+
+  void calculateBollAtLast({
+    int period = 20,
+    int bandwidth = 2,
+    required List<KLineData> newData,
+  }) {
+    BollCalculator.calculateBollAtLast(
+      period: period,
+      bandwidth: bandwidth,
+      oriData: this,
+      newData: newData,
     );
   }
 
@@ -133,11 +192,37 @@ extension IndicatorCalculateExtension on List<KLineData> {
     );
   }
 
+  void calculateMacdAtLast({
+    int shortPeriod = 12,
+    int longPeriod = 26,
+    int difPeriod = 9,
+    required List<KLineData> newData,
+  }) {
+    MacdCalculator.calculateMacdAtLast(
+      shortPeriod: shortPeriod,
+      longPeriod: longPeriod,
+      difPeriod: difPeriod,
+      oriData: this,
+      newData: newData,
+    );
+  }
+
   /// 計算相對強弱指標
   void calculateRSI({
     List<int> periods = const [6, 12, 24],
   }) {
     RsiCalculator.calculateRSI(periods: periods, datas: this);
+  }
+
+  void calculateRsiAtLast({
+    List<int> periods = const [6, 12, 24],
+    required List<KLineData> newData,
+  }) {
+    RsiCalculator.calculateRsiAtLast(
+      periods: periods,
+      oriData: this,
+      newData: newData,
+    );
   }
 
   /// 計算隨機指標
@@ -154,10 +239,36 @@ extension IndicatorCalculateExtension on List<KLineData> {
     );
   }
 
+  void calculateKdjAtLast({
+    int period = 9,
+    int maPeriod1 = 3,
+    int maPeriod2 = 3,
+    required List<KLineData> newData,
+  }) {
+    KdjCalculator.calculateKDJAtLast(
+      period: period,
+      maPeriod1: maPeriod1,
+      maPeriod2: maPeriod2,
+      oriData: this,
+      newData: newData,
+    );
+  }
+
   /// 計算威廉指標(兼具超買超賣和強弱分界的指標)
   void calculateWR({
     List<int> periods = const [6, 13],
   }) {
     WrCalculator.calculateWR(periods: periods, datas: this);
+  }
+
+  void calculateWrAtLast({
+    List<int> periods = const [6, 13],
+    required List<KLineData> newData,
+  }) {
+    WrCalculator.calculateWrAtLast(
+      periods: periods,
+      oriData: this,
+      newData: newData,
+    );
   }
 }

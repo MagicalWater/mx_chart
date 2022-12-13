@@ -117,7 +117,6 @@ class BollCalculator {
         data.indicatorData.boll = IndicatorBOLL(mb: mb, up: up, dn: dn);
       }
     }
-
   }
 
   /// 計算boll線

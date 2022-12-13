@@ -31,8 +31,8 @@ class MaCalculator {
     });
 
     for (var i = startIndex; i < datas.length; i++) {
-      final indicator = IndicatorMa();
       final data = datas[i];
+      final indicator = data.indicatorData.ma ?? IndicatorMa();
       final close = data.close;
 
       periodMaValue = periodMaValue.map((e) => e + close).toList();
@@ -65,8 +65,8 @@ class MaCalculator {
     var periodMaValue = List<double>.generate(periods.length, (index) => 0);
 
     for (var i = 0; i < newData.length; i++) {
-      final indicator = IndicatorMa();
       final data = newData[i];
+      final indicator = data.indicatorData.ma ?? IndicatorMa();
       final close = data.close;
 
       periodMaValue = periodMaValue.map((e) => e + close).toList();
@@ -140,8 +140,8 @@ class MaCalculator {
     var periodMaValue = List<double>.generate(periods.length, (index) => 0);
 
     for (var i = 0; i < datas.length; i++) {
-      final indicator = IndicatorMa();
       final data = datas[i];
+      final indicator = data.indicatorData.ma ?? IndicatorMa();
       final close = data.close;
 
       periodMaValue = periodMaValue.map((e) => e + close).toList();

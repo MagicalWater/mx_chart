@@ -101,6 +101,7 @@ mixin MainChartRenderPaintMixin on MainChartValueMixin {
     for (int i = startIndex; i <= endIndex; i++) {
       final value = values[i];
       if (value == null) {
+        preValue = null;
         continue;
       }
       final x = dataViewer.dataIndexToRealX(i);

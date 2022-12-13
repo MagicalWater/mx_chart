@@ -1,3 +1,6 @@
+## 1.0.2+1
+- Add indicator calculate Add Last Method
+
 ## 1.0.1+2
 - Fix KDJ indicator calculate no apply period.
 

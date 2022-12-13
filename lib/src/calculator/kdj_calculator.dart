@@ -4,6 +4,61 @@ import '../ui/k_line_chart/model/model.dart';
 
 /// 圖表技術指標計算
 class KdjCalculator {
+
+  static void calculateKDJAtLast({
+    int period = 9,
+    int maPeriod1 = 3,
+    int maPeriod2 = 3,
+    required List<KLineData> oriData,
+    required List<KLineData> newData,
+  }) {
+    final datas = [...oriData, ...newData];
+
+    final startIndex = oriData.length;
+
+    final oriLastData = oriData.last.indicatorData.kdj;
+    double k = oriLastData?.k ?? 0;
+    double d = oriLastData?.d ?? 0;
+
+    for (var i = startIndex; i < datas.length; i++) {
+      final data = datas[i];
+      final closePrice = data.close;
+      int startIndex = i - (period - 1);
+      if (startIndex < 0) {
+        startIndex = 0;
+      }
+      var maxPrice = -double.maxFinite;
+      var minPrice = double.maxFinite;
+      for (var index = startIndex; index <= i; index++) {
+        maxPrice = max(maxPrice, datas[index].high);
+        minPrice = min(minPrice, datas[index].low);
+      }
+
+      double rsv;
+      if (maxPrice == minPrice) {
+        rsv = 0;
+      } else {
+        rsv = ((closePrice - minPrice) / (maxPrice - minPrice)) * 100;
+      }
+
+      if (i == 0) {
+        // 第一日沒有K值與D值, 因此賦值50
+        k = 50;
+        d = 50;
+      } else {
+        k = (((maPeriod1 - 1) / maPeriod1) * k) + ((1 / maPeriod1) * rsv);
+        d = (((maPeriod2 - 1) / maPeriod2) * d) + ((1 / maPeriod2) * k);
+      }
+
+      if (i == period - 1 || i == period) {
+        data.indicatorData.kdj = IndicatorKDJ(k: k, d: 0, j: 0);
+      } else if (i > period) {
+        final j = (3 * k) - (2 * d);
+        data.indicatorData.kdj = IndicatorKDJ(k: k, d: d, j: j);
+      }
+    }
+  }
+
   /// 計算隨機指標
   /// 計算說明
   /// 在計算KDJ指標前，得先計算出「未成熟隨機值RSV」
