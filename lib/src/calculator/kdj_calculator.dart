@@ -81,11 +81,13 @@ class KdjCalculator {
   /// [period] - 計算RSV的週期(週期內最低/最高)
   /// [maPeriod1] - K值時間週期
   /// [maPeriod2] - J值移動平均時間週期
+  /// [coverExist] - 若技術線已存在, 是否覆蓋
   static void calculateKDJ({
     int period = 9,
     int maPeriod1 = 3,
     int maPeriod2 = 3,
     required List<KLineData> datas,
+    bool coverExist = true,
   }) {
     double k = 0;
     double d = 0;
@@ -121,10 +123,14 @@ class KdjCalculator {
       }
 
       if (i == period - 1 || i == period) {
-        data.indicatorData.kdj = IndicatorKDJ(k: k, d: 0, j: 0);
+        if (coverExist || data.indicatorData.kdj == null) {
+          data.indicatorData.kdj = IndicatorKDJ(k: k, d: 0, j: 0);
+        }
       } else if (i > period) {
         final j = (3 * k) - (2 * d);
-        data.indicatorData.kdj = IndicatorKDJ(k: k, d: d, j: j);
+        if (coverExist || data.indicatorData.kdj == null) {
+          data.indicatorData.kdj = IndicatorKDJ(k: k, d: d, j: j);
+        }
       }
     }
   }

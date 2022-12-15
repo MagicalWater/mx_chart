@@ -122,13 +122,19 @@ class BollCalculator {
   /// 計算boll線
   /// [period] - 週期, 默認為20
   /// [bandwidth] - 帶寬
+  /// [coverExist] - 若技術線已存在, 是否覆蓋
   static void calculateBOLL({
     int period = 20,
     int bandwidth = 2,
     required List<KLineData> datas,
+    bool coverExist = true,
   }) {
     for (var i = 0; i < datas.length; i++) {
       final data = datas[i];
+      if (!coverExist && data.indicatorData.boll != null) {
+        continue;
+      }
+
       // 先檢查是否有均線
       final indicatorMaValue = data.indicatorData.ma?.ma[period];
       if (indicatorMaValue == null) {

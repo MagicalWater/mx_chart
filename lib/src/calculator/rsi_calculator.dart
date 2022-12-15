@@ -64,6 +64,7 @@ class RsiCalculator {
   static void calculateRSI({
     List<int> periods = const [6, 12, 24],
     required List<KLineData> datas,
+    bool coverExist = true,
   }) {
     double rsi;
     var periodAbsEmaValue = List<double>.generate(periods.length, (index) => 0);
@@ -92,7 +93,9 @@ class RsiCalculator {
           if (rsi.isNaN) {
             rsi = 0;
           }
-          indicator.rsi[period] = rsi;
+          if (coverExist || !indicator.rsi.containsKey(period)) {
+            indicator.rsi[period] = rsi;
+          }
         }
       }
 

@@ -1,3 +1,6 @@
+## 1.0.3+1
+- Add param 'coverExist' to indicator calculate method
+
 ## 1.0.2+1
 - Add indicator calculate Add Last Method
 

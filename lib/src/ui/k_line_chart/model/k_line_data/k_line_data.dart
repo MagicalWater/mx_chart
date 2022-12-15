@@ -80,24 +80,34 @@ extension IndicatorCalculateExtension on List<KLineData> {
   /// [bollPeriod] - boll線週期
   void calculateAllIndicator({
     IndicatorSetting indicatorSetting = const IndicatorSetting(),
+    bool coverExist = true,
   }) {
     calculateMA(periods: indicatorSetting.maSetting.periods);
     calculateBOLL(
       period: indicatorSetting.bollSetting.period,
       bandwidth: indicatorSetting.bollSetting.bandwidth,
+      coverExist: coverExist,
     );
     calculateMACD(
       shortPeriod: indicatorSetting.macdSetting.shortPeriod,
       longPeriod: indicatorSetting.macdSetting.longPeriod,
       difPeriod: indicatorSetting.macdSetting.difPeriod,
+      coverExist: coverExist,
     );
-    calculateRSI(periods: indicatorSetting.rsiSetting.periods);
+    calculateRSI(
+      periods: indicatorSetting.rsiSetting.periods,
+      coverExist: coverExist,
+    );
     calculateKDJ(
       period: indicatorSetting.kdjSetting.period,
       maPeriod1: indicatorSetting.kdjSetting.maPeriod1,
       maPeriod2: indicatorSetting.kdjSetting.maPeriod2,
+      coverExist: coverExist,
     );
-    calculateWR(periods: indicatorSetting.wrSetting.periods);
+    calculateWR(
+      periods: indicatorSetting.wrSetting.periods,
+      coverExist: coverExist,
+    );
   }
 
   void calculateAllIndicatorAtLast({
@@ -157,11 +167,13 @@ extension IndicatorCalculateExtension on List<KLineData> {
   void calculateBOLL({
     int period = 20,
     int bandwidth = 2,
+    bool coverExist = true,
   }) {
     BollCalculator.calculateBOLL(
       period: period,
       bandwidth: bandwidth,
       datas: this,
+      coverExist: coverExist,
     );
   }
 
@@ -183,12 +195,14 @@ extension IndicatorCalculateExtension on List<KLineData> {
     int shortPeriod = 12,
     int longPeriod = 26,
     int difPeriod = 9,
+    bool coverExist = true,
   }) {
     MacdCalculator.calculateMACD(
       shortPeriod: shortPeriod,
       longPeriod: longPeriod,
       difPeriod: difPeriod,
       datas: this,
+      coverExist: coverExist,
     );
   }
 
@@ -210,8 +224,13 @@ extension IndicatorCalculateExtension on List<KLineData> {
   /// 計算相對強弱指標
   void calculateRSI({
     List<int> periods = const [6, 12, 24],
+    bool coverExist = true,
   }) {
-    RsiCalculator.calculateRSI(periods: periods, datas: this);
+    RsiCalculator.calculateRSI(
+      periods: periods,
+      datas: this,
+      coverExist: coverExist,
+    );
   }
 
   void calculateRsiAtLast({
@@ -230,12 +249,14 @@ extension IndicatorCalculateExtension on List<KLineData> {
     int period = 9,
     int maPeriod1 = 3,
     int maPeriod2 = 3,
+    bool coverExist = true,
   }) {
     KdjCalculator.calculateKDJ(
       period: period,
       maPeriod1: maPeriod1,
       maPeriod2: maPeriod2,
       datas: this,
+      coverExist: coverExist,
     );
   }
 
@@ -257,8 +278,13 @@ extension IndicatorCalculateExtension on List<KLineData> {
   /// 計算威廉指標(兼具超買超賣和強弱分界的指標)
   void calculateWR({
     List<int> periods = const [6, 13],
+    bool coverExist = true,
   }) {
-    WrCalculator.calculateWR(periods: periods, datas: this);
+    WrCalculator.calculateWR(
+      periods: periods,
+      datas: this,
+      coverExist: coverExist,
+    );
   }
 
   void calculateWrAtLast({

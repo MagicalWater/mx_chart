@@ -4,7 +4,6 @@ import '../ui/k_line_chart/model/model.dart';
 
 /// 圖表技術指標計算
 class WrCalculator {
-
   static void calculateWrAtLast({
     List<int> periods = const [6, 13],
     required List<KLineData> oriData,
@@ -52,6 +51,7 @@ class WrCalculator {
   static void calculateWR({
     List<int> periods = const [6, 13],
     required List<KLineData> datas,
+    bool coverExist = true,
   }) {
     for (var i = 0; i < datas.length; i++) {
       final data = datas[i];
@@ -77,7 +77,9 @@ class WrCalculator {
           } else {
             wr = 100 * (maxPrice - datas[i].close) / (maxPrice - minPrice);
           }
-          indicator.wr[period] = wr;
+          if (coverExist || !indicator.wr.containsKey(period)) {
+            indicator.wr[period] = wr;
+          }
           data.indicatorData.wr = indicator;
         }
       }

@@ -23,8 +23,7 @@ class MacdCalculator {
     final oriMacd = oriData.last.indicatorData.macd;
     if (oriMacd == null) {
       if (kDebugMode) {
-        print(
-            'MaCalculator(MacdLast): 原始資料的macd技術線不完整, 無法使用atLast方式計算技術線');
+        print('MaCalculator(MacdLast): 原始資料的macd技術線不完整, 無法使用atLast方式計算技術線');
       }
       return;
     }
@@ -134,8 +133,7 @@ class MacdCalculator {
       final close = data.close;
 
       // EMA(n)=(前一日EMA(n) × (n-1)+今日收盤價 × 2) ÷ (n+1)
-      emaShort =
-          (emaShort * (shortPeriod - 1) + close * 2) / (shortPeriod + 1);
+      emaShort = (emaShort * (shortPeriod - 1) + close * 2) / (shortPeriod + 1);
       // EMA(m)=(前一日EMA(m) × (m-1)+今日收盤價 × 2) ÷ (m+1)
       emaLong = (emaLong * (longPeriod - 1) + close * 2) / (longPeriod + 1);
 
@@ -169,6 +167,7 @@ class MacdCalculator {
     int longPeriod = 26,
     int difPeriod = 9,
     required List<KLineData> datas,
+    bool coverExist = true,
   }) {
     double emaShort = 0;
     double emaLong = 0;
@@ -204,13 +203,15 @@ class MacdCalculator {
       // MACD(k)=(今日DIF - 今日DEA) x 2
       macd = (dif - dea) * 2;
 
-      data.indicatorData.macd = IndicatorMACD(
-        dea: dea,
-        dif: dif,
-        macd: macd,
-        emaShort: emaShort,
-        emaLong: emaLong,
-      );
+      if (coverExist || data.indicatorData.macd == null) {
+        data.indicatorData.macd = IndicatorMACD(
+          dea: dea,
+          dif: dif,
+          macd: macd,
+          emaShort: emaShort,
+          emaLong: emaLong,
+        );
+      }
     }
   }
 }
