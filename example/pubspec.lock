@@ -141,7 +141,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.3+1"
+    version: "1.0.4+1"
   nested:
     dependency: transitive
     description:
@@ -162,7 +162,7 @@ packages:
       name: provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.4"
+    version: "6.0.5"
   rational:
     dependency: transitive
     description:

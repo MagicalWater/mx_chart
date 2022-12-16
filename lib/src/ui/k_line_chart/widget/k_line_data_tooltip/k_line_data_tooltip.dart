@@ -168,7 +168,7 @@ class KLineDataInfoTooltip extends StatelessWidget {
     }
     final changedRate = changedValue.divide(prevClose) * 100;
 
-    var changeValueText = priceFormatter(changedRate);
+    var changeValueText = priceFormatter(changedValue);
     var changeRateText = '${changedRate.toStringAsFixed(2)}%';
 
     if (changedValue >= 0) {

@@ -1,3 +1,6 @@
+## 1.0.4+1
+- Fix Tooltip 'Change Value' value error.  
+
 ## 1.0.3+1
 - Add param 'coverExist' to indicator calculate method
 
