@@ -63,19 +63,19 @@ mixin MainChartValueMixin on MainChartRender {
       dataViewer.mainChartIndicatorState;
 
   /// 是否顯示k線
-  late final bool isShowKLine;
+  late bool isShowKLine;
 
   /// 是否顯示收盤價折線
-  late final bool isShowLineIndex;
+  late bool isShowLineIndex;
 
   /// 是否顯示ma線
-  late final bool isShowMa;
+  late bool isShowMa;
 
   /// 是否顯示boll線
-  late final bool isShowBoll;
+  late bool isShowBoll;
 
   /// 最大最小值是否相同(代表為一條線)
-  late final bool isMinMaxValueEqual;
+  late bool isMinMaxValueEqual;
 
   @override
   void initValue(Rect rect) {

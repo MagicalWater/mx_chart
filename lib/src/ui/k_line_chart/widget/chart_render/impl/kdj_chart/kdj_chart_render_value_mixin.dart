@@ -27,7 +27,7 @@ mixin KDJChartValueMixin on KDJChartRender {
   KDJChartSizeSetting get sizes => uiStyle.sizeSetting;
 
   /// 最大最小值是否相同(代表為一條線)
-  late final bool isMinMaxValueEqual;
+  late bool isMinMaxValueEqual;
 
   @override
   void initValue(Rect rect) {

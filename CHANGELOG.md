@@ -1,3 +1,6 @@
+## 1.0.5+1
+- Fix init error in some case.
+
 ## 1.0.4+1
 - Fix Tooltip 'Change Value' value error.  
 
