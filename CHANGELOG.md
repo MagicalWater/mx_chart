@@ -1,3 +1,6 @@
+## 1.0.6+1
+- Add web platform support.
+
 ## 1.0.5+1
 - Fix init error in some case.
 
