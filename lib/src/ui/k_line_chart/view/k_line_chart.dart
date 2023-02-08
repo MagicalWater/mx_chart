@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mx_chart/src/util/date_util.dart';
@@ -128,7 +128,7 @@ class KLineChart extends StatefulWidget {
   final String Function(num price) priceFormatter;
 
   /// 成交量格式化
-  final String Function(num volume)? volumeFormatter;
+  final String Function(num volume) volumeFormatter;
 
   /// 圖表控制
   final KLineChartController? controller;
@@ -162,7 +162,7 @@ class KLineChart extends StatefulWidget {
     this.tooltipBuilder,
     this.xAxisDateTimeFormatter = _defaultXAxisDateFormatter,
     this.priceFormatter = _defaultPriceFormatter,
-    this.volumeFormatter,
+    this.volumeFormatter = _defaultVolumeFormatter,
     this.onLoadMore,
     this.controller,
     this.priceTagBuilder,
@@ -178,6 +178,18 @@ class KLineChart extends StatefulWidget {
   /// 預設價格格式化
   static String _defaultPriceFormatter(num price) {
     return price.toStringAsFixed(2);
+  }
+
+  /// 預設成交量格式化
+  static String _defaultVolumeFormatter(num volume) {
+    if (volume > 10000 && volume < 999999) {
+      final d = volume / 1000;
+      return '${d.toStringAsFixed(2)}K';
+    } else if (volume > 1000000) {
+      final d = volume / 1000000;
+      return '${d.toStringAsFixed(2)}M';
+    }
+    return volume.toStringAsFixed(2);
   }
 
   @override
@@ -287,27 +299,16 @@ class _KLineChartState extends State<KLineChart>
     super.dispose();
   }
 
-  /// 預設成交量格式化
-  String _defaultVolumeFormatter(num volume) {
-    if (volume > 10000 && volume < 999999) {
-      final d = volume / 1000;
-      return '${widget.priceFormatter(d)}K';
-    } else if (volume > 1000000) {
-      final d = volume / 1000000;
-      return '${widget.priceFormatter(d)}M';
-    }
-    return widget.priceFormatter(volume);
-  }
-
   @override
   Widget build(BuildContext context) {
     final heightSetting = widget.chartUiStyle.heightRatioSetting;
     chartHeight = heightSetting.getFixedHeight(
+          mainChartState: widget.mainChartState,
           volumeChartState: widget.volumeChartState,
           indicatorChartState: widget.indicatorChartState,
         ) ??
         double.infinity;
-    return TouchGestureDector(
+    return TouchGestureDetector(
       onTouchStart: chartGesture.onTouchDown,
       onTouchUpdate: chartGesture.onTouchUpdate,
       onTouchEnd: chartGesture.onTouchUp,
@@ -351,8 +352,7 @@ class _KLineChartState extends State<KLineChart>
                 kdjChartUiStyle: widget.kdjChartUiStyle,
                 indicatorSetting: widget.indicatorSetting,
                 priceFormatter: widget.priceFormatter,
-                volumeFormatter:
-                    widget.volumeFormatter ?? _defaultVolumeFormatter,
+                volumeFormatter: widget.volumeFormatter,
                 xAxisDateTimeFormatter: widget.xAxisDateTimeFormatter,
                 mainChartHeightOffset: mainChartHeightOffset,
                 onDrawInfo: (info) {
@@ -414,8 +414,7 @@ class _KLineChartState extends State<KLineChart>
               KLineDataInfoTooltip(
                 longPressData: data,
                 priceFormatter: widget.priceFormatter,
-                volumeFormatter:
-                    widget.volumeFormatter ?? _defaultVolumeFormatter,
+                volumeFormatter: widget.volumeFormatter,
                 uiStyle: widget.tooltipUiStyle,
                 tooltipPrefix: widget.tooltipPrefix,
               );
@@ -432,6 +431,10 @@ class _KLineChartState extends State<KLineChart>
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final rect = snapshot.data!;
+
+          if (rect.isEmpty) {
+            return const SizedBox.shrink();
+          }
 
           // 最外層需要包裹在一樣的高度下, 否則實際點擊區塊會出問題
           return SizedBox(
@@ -463,7 +466,9 @@ class _KLineChartState extends State<KLineChart>
       stream: _pricePositionStream,
       builder: (context, snapshot) {
         final position = snapshot.data;
-        if (realTimePrice == null || position == null) {
+        if (widget.mainChartState == MainChartState.none ||
+            realTimePrice == null ||
+            position == null) {
           return const SizedBox.shrink();
         }
 

@@ -42,7 +42,7 @@ class _HeightRatioDragBarState extends State<HeightRatioDragBar> {
   Widget build(BuildContext context) {
     return PositionLayout(
       xRatio: 0,
-      yFixed: widget.rect.bottom,
+      yFixed: widget.rect.center.dy,
       anchorPoint: Alignment.centerLeft,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,

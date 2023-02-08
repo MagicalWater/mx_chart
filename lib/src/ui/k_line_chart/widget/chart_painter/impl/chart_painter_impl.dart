@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../chart_gesture/chart_gesture.dart';
 import '../../../model/model.dart';
 import '../../chart_render/impl/kdj_chart/ui_style/kdj_chart_ui_style.dart';
@@ -89,7 +90,7 @@ class ChartPainterImpl extends ChartPainter
   PricePositionGetter? pricePositionGetter;
 
   /// 高度分配結果
-  void Function(ChartHeightCampute<Rect> compute)? onRect;
+  void Function(ChartHeightCompute<Rect> compute)? onRect;
 
   /// 主圖表的高度偏移
   final double mainChartHeightOffset;
@@ -129,6 +130,11 @@ class ChartPainterImpl extends ChartPainter
     //   canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
     //   return;
     // }
+    if (mainChartState == MainChartState.none &&
+        volumeChartState == VolumeChartState.none &&
+        indicatorChartState == IndicatorChartState.none) {
+      return;
+    }
 
     // 初始化數值
     initDataValue(size);
@@ -140,6 +146,7 @@ class ChartPainterImpl extends ChartPainter
     final computeRect = chartUiStyle.heightRatioSetting
         .computeChartHeight(
           totalHeight: size.height,
+          mainChartState: mainChartState,
           volumeChartState: volumeChartState,
           indicatorChartState: indicatorChartState,
           mainChartHeightOffset: mainChartHeightOffset,
@@ -172,6 +179,7 @@ class ChartPainterImpl extends ChartPainter
     // 繪製時間軸
     paintTimeAxis(canvas, computeRect.bottomTime);
 
+    // 繪製拖拉bar的背景
     paintScrollBarBackground(
       canvas: canvas,
       rect: computeRect.scrollBar,

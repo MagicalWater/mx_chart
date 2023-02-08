@@ -6,6 +6,9 @@ class ChartSizeSetting {
   /// 背景格線數量
   final int gridRows, gridColumns;
 
+  /// 隔線粗細度
+  final double gridLine;
+
   /// 由於圖表是否拖曳更改比例的, 此表示可以容許的最大最小網格高度
   /// 可為空, 代表一切皆可
   final double? minGridHeight, maxGridHeight;
@@ -36,6 +39,9 @@ class ChartSizeSetting {
   /// 下方時間軸的文字大小
   final double bottomTimeText;
 
+  /// 下方時間軸的線
+  final double bottomTimeLine;
+
   /// 主圖表的拖曳bar線條高度
   final double dragBarLineHeight;
 
@@ -46,6 +52,7 @@ class ChartSizeSetting {
     this.dataWidth = 8,
     this.gridRows = 3,
     this.gridColumns = 4,
+    this.gridLine = 1,
     this.minGridHeight = 60,
     this.maxGridHeight = 100,
     this.rightSpace = 70,
@@ -58,6 +65,7 @@ class ChartSizeSetting {
     this.longPressTimeBorderVerticalPadding = 2,
     this.longPressTimeBorderHorizontalPadding = 12,
     this.bottomTimeText = 10,
+    this.bottomTimeLine = 1,
     this.dragBarLineHeight = 1,
     this.rightValueLine = 1,
   });

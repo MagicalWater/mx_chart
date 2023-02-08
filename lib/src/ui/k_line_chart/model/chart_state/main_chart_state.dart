@@ -5,4 +5,7 @@ enum MainChartState {
 
   /// 收盤價折線圖
   lineIndex,
+
+  /// 不顯示主題表
+  none,
 }

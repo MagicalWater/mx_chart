@@ -17,7 +17,7 @@ mixin KDJChartValueMixin on KDJChartRender {
   late double _valueToYScale;
 
   final Paint backgroundPaint = Paint();
-  final Paint gripPaint = Paint();
+  final Paint gridPaint = Paint();
   final Paint linePaint = Paint()..style = PaintingStyle.stroke;
 
   KDJChartUiStyle get uiStyle => dataViewer.kdjChartUiStyle;

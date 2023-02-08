@@ -113,6 +113,7 @@ class PriceTagLine extends StatelessWidget {
   }
 
   /// 取得最右側價格所需寬度
+  // ignore: unused_element
   double _rightSidePriceWidth() {
     final colorSetting = uiStyle.colorSetting;
     final sizeSetting = uiStyle.sizeSetting;

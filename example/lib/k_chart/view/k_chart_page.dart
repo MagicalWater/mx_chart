@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mx_chart/mx_chart.dart';
@@ -80,7 +81,9 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
             return volume.toStringAsFixed(2);
           },
           onLoadMore: (value) {
-            print('加載更多: $value');
+            if (kDebugMode) {
+              print('加載更多: $value');
+            }
           },
           tooltipBuilder: (context, longPressData) {
             return KLineDataInfoTooltip(
@@ -110,7 +113,9 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
     return Scaffold(
       // backgroundColor: Color(0xff1e2129),
       backgroundColor: Colors.black,
-      appBar: AppBar(title: const Text('行情圖表'),),
+      appBar: AppBar(
+        title: const Text('行情圖表'),
+      ),
       body: BlocBuilder<KChartBloc, KChartState>(
         builder: (context, state) {
           // print('是線條嗎: ${stateIsLine}');
@@ -157,7 +162,10 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
         style: TextButton.styleFrom(
           backgroundColor: Colors.blue,
         ),
-        child: Text(text, style: TextStyle(color: Colors.white),),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white),
+        ),
       );
     }
 
@@ -174,6 +182,12 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           "k線",
           onPressed: () {
             bloc().add(KChartMainStateEvent(state: MainChartState.kLine));
+          },
+        ),
+        button(
+          "無主圖表",
+          onPressed: () {
+            bloc().add(KChartMainStateEvent(state: MainChartState.none));
           },
         ),
         button(

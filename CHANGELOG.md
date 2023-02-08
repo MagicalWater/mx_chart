@@ -1,3 +1,10 @@
+## 1.0.7+1
+- Added MainChartState.none, which means hidden.
+- Added grid line stroke setting.
+- Fixed the problem that the height proportional dragging bar was not centered.
+- Added the color setting of the top line of the timeline
+- Fixed the problem that volumeFormatter was invalid
+
 ## 1.0.6+1
 - Add web platform support.
 

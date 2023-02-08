@@ -6,7 +6,7 @@ import 'multi_touch_gesture_recognizer/multi_touch_gesture_recognizer.dart';
 export 'package:flutter/gestures.dart';
 export 'multi_touch_gesture_recognizer/multi_touch_gesture_recognizer.dart';
 
-class TouchGestureDector extends StatefulWidget {
+class TouchGestureDetector extends StatefulWidget {
   final void Function(int pointer, DragStartDetails details)? onTouchStart;
   final void Function(int pointer, DragUpdateDetails details)? onTouchUpdate;
   final void Function(int pointer, DragEndDetails details)? onTouchEnd;
@@ -17,7 +17,7 @@ class TouchGestureDector extends StatefulWidget {
 
   final Widget? child;
 
-  const TouchGestureDector({
+  const TouchGestureDetector({
     Key? key,
     this.child,
     this.onTouchStart,
@@ -28,10 +28,10 @@ class TouchGestureDector extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TouchGestureDectorState createState() => _TouchGestureDectorState();
+  State<TouchGestureDetector> createState() => _TouchGestureDetectorState();
 }
 
-class _TouchGestureDectorState extends State<TouchGestureDector> {
+class _TouchGestureDetectorState extends State<TouchGestureDetector> {
   /// 手勢觸摸元件的GlobalKey
   /// 用於供給[MultiTouchGestureRecognizer]可進行localPostion的更新
   final GlobalKey<RawGestureDetectorState> gestureKey = GlobalKey();

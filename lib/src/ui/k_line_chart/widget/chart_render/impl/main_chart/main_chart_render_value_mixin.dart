@@ -33,7 +33,7 @@ mixin MainChartValueMixin on MainChartRender {
   final Paint backgroundPaint = Paint();
 
   /// 分隔線畫筆
-  final Paint gripPaint = Paint();
+  final Paint gridPaint = Paint();
 
   /// 折線/ma線/boll線畫筆
   final Paint linePaint = Paint()..style = PaintingStyle.stroke;

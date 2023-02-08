@@ -2,7 +2,6 @@ import 'package:flutter/painting.dart';
 
 import '../../../model/model.dart';
 import '../../chart_render/chart_render.dart';
-import '../../chart_render/impl/main_chart/main_chart_render_impl.dart';
 import '../../chart_render/impl/volume_chart/volume_chart_render_impl.dart';
 import '../../chart_render/kdj_chart_render.dart';
 import '../../chart_render/macd_chart_render.dart';
@@ -34,11 +33,18 @@ mixin ChartPainterPaintMixin on ChartPainter {
     required Rect rect,
     PricePositionGetter? pricePositionGetter,
   }) {
-    _mainChartRender ??= MainChartRenderImpl(
-      dataViewer: this,
-      pricePositionGetter: pricePositionGetter,
-    );
-    _mainChartRender?.paint(canvas, rect);
+    switch (mainChartState) {
+      case MainChartState.none:
+        _mainChartRender = null;
+        break;
+      default:
+        _mainChartRender ??= MainChartRenderImpl(
+          dataViewer: this,
+          pricePositionGetter: pricePositionGetter,
+        );
+        _mainChartRender?.paint(canvas, rect);
+        break;
+    }
   }
 
   /// 繪製拖拉高度比例bar的背景
@@ -46,10 +52,12 @@ mixin ChartPainterPaintMixin on ChartPainter {
     required Canvas canvas,
     required Rect rect,
   }) {
-    final ChartRender render = ScrollBarBackgroundRenderImpl(
-      dataViewer: this,
-    );
-    render.paint(canvas, rect);
+    if (!rect.isEmpty) {
+      final ChartRender render = ScrollBarBackgroundRenderImpl(
+        dataViewer: this,
+      );
+      render.paint(canvas, rect);
+    }
   }
 
   /// 繪製volume圖表
@@ -106,7 +114,12 @@ mixin ChartPainterPaintMixin on ChartPainter {
       _crossLinePaint,
     );
 
-    _mainChartRender?.paintLongPressHorizontalLineAndValue(canvas, mainChartRect);
+    if (!mainChartRect.isEmpty) {
+      _mainChartRender?.paintLongPressHorizontalLineAndValue(
+        canvas,
+        mainChartRect,
+      );
+    }
   }
 
   /// 繪製長按時間
@@ -215,18 +228,22 @@ mixin ChartPainterPaintMixin on ChartPainter {
 
   /// 繪製時間軸(x軸)
   void paintTimeAxis(Canvas canvas, Rect rect) {
+    if (rect.isEmpty) {
+      return;
+    }
     final sizes = chartUiStyle.sizeSetting;
     final colors = chartUiStyle.colorSetting;
 
     // 繪製背景
     _bottomTimePaint.color = colors.bottomTimeBg;
+    _bottomTimePaint.strokeWidth = sizes.bottomTimeLine;
     canvas.drawRect(rect, _bottomTimePaint);
 
     // 繪製上方橫格線
     canvas.drawLine(
       Offset(0, rect.top),
       Offset(rect.right, rect.top),
-      _bottomTimePaint..color = colors.grid,
+      _bottomTimePaint..color = colors.bottomTimeLine,
     );
 
     final contentWidth = rect.width - chartUiStyle.sizeSetting.rightSpace;

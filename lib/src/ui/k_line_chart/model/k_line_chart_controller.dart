@@ -7,7 +7,9 @@ class KLineChartController {
   /// [animated] - 是否使用動畫滾動
   Future<void> scroll1ToRight({bool animated = true}) async {
     if (_bind == null) {
-      print('錯誤: KLineChartController尚未綁定至KLineChart上, 忽略此次請求');
+      if (kDebugMode) {
+        print('錯誤: KLineChartController尚未綁定至KLineChart上, 忽略此次請求');
+      }
     }
     return _bind?.scrollToRight(animated: animated);
   }

@@ -18,7 +18,7 @@ mixin VolumeChartValueMixin on VolumeChartRender {
   late double barWidthScaled;
 
   final Paint backgroundPaint = Paint();
-  final Paint gripPaint = Paint();
+  final Paint gridPaint = Paint();
 
   final chartPaint = Paint()
     ..isAntiAlias = true

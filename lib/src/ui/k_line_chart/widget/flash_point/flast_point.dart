@@ -15,7 +15,7 @@ class FlashPoint extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _FlashPointState createState() => _FlashPointState();
+  State<FlashPoint> createState() => _FlashPointState();
 }
 
 class _FlashPointState extends State<FlashPoint>

@@ -20,7 +20,7 @@ mixin MACDChartValueMixin on MACDChartRender {
   late double barWidthScaled;
 
   final Paint backgroundPaint = Paint();
-  final Paint gripPaint = Paint();
+  final Paint gridPaint = Paint();
   final Paint linePaint = Paint()..style = PaintingStyle.stroke;
 
   final chartPaint = Paint()

@@ -17,7 +17,7 @@ mixin WRChartValueMixin on WRChartRender {
   late double _valueToYScale;
 
   final Paint backgroundPaint = Paint();
-  final Paint gripPaint = Paint();
+  final Paint gridPaint = Paint();
   final Paint linePaint = Paint()..style = PaintingStyle.stroke;
 
   WRChartUiStyle get uiStyle => dataViewer.wrChartUiStyle;

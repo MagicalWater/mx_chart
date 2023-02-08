@@ -286,8 +286,8 @@ mixin MainChartRenderPaintMixin on MainChartValueMixin {
       Offset(rect.right, longPressY),
       crossHorizontalPaint
         ..style = PaintingStyle.stroke
-        ..color = uiStyle.colorSetting.longPressHorizontallLine
-        ..color = dataViewer.chartUiStyle.colorSetting.longPressHorizontallLine
+        ..color = uiStyle.colorSetting.longPressHorizontalLine
+        ..color = dataViewer.chartUiStyle.colorSetting.longPressHorizontalLine
         ..strokeWidth = uiStyle.sizeSetting.longPressHorizontalLineHeight,
     );
 
@@ -303,7 +303,7 @@ mixin MainChartRenderPaintMixin on MainChartValueMixin {
       crossHorizontalPaint
         ..style = PaintingStyle.fill
         ..strokeWidth = 1
-        ..color = dataViewer.chartUiStyle.colorSetting.longPressHorizontallLine,
+        ..color = dataViewer.chartUiStyle.colorSetting.longPressHorizontalLine,
     );
   }
 

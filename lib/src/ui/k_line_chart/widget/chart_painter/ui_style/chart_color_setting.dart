@@ -8,7 +8,7 @@ class ChartColorSetting {
   final Color longPressVerticalLine;
 
   /// 長按時的交叉線橫顏色
-  final Color longPressHorizontallLine;
+  final Color longPressHorizontalLine;
 
   /// 長按時的交叉圓點顏色
   final Color longPressCrossPoint;
@@ -37,6 +37,9 @@ class ChartColorSetting {
   /// 下方時間軸的背景
   final Color bottomTimeBg;
 
+  /// 下方時間軸的線條
+  final Color bottomTimeLine;
+
   /// 主圖表下方的拖曳bar, 一般型態時的顏色
   final Color dragBar;
   final Color dragBarDragging;
@@ -50,7 +53,7 @@ class ChartColorSetting {
   const ChartColorSetting({
     this.grid = const Color(0xff2c303e),
     this.longPressVerticalLine = Colors.white12,
-    this.longPressHorizontallLine = Colors.white,
+    this.longPressHorizontalLine = Colors.white,
     this.longPressCrossPoint = Colors.white,
     this.longPressValue = Colors.white,
     this.longPressValueBg = const Color(0xff0D1722),
@@ -60,6 +63,7 @@ class ChartColorSetting {
     this.longPressTimeBorder = const Color(0xff6C7A86),
     this.bottomTimeText = const Color(0xff60738E),
     this.bottomTimeBg = const Color(0xff1e2129),
+    this.bottomTimeLine = const Color(0xff3d6086),
     this.dragBar = const Color(0xff3d6086),
     this.dragBarDragging = const Color(0xff3d6086),
     this.dragBarTriangle = const Color(0xffb1bfd0),

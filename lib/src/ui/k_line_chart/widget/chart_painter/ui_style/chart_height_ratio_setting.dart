@@ -26,6 +26,7 @@ class ChartHeightRatioSetting {
   final double bottomTimeFixed;
 
   /// 拖拉高度比例圖表的元件高度
+  /// 此高度與主圖表綁定, 若主圖表沒有顯示, 則此值無效
   final double scrollBarFixed;
 
   /// 主圖表的最低偏移佔比
@@ -46,10 +47,11 @@ class ChartHeightRatioSetting {
 
   /// 高度是否全為固定值
   bool isHeightFixed({
+    required MainChartState mainChartState,
     required VolumeChartState volumeChartState,
     required IndicatorChartState indicatorChartState,
   }) {
-    if (mainFixed == null) {
+    if (mainChartState != MainChartState.none && mainFixed == null) {
       return false;
     }
     if (volumeChartState != VolumeChartState.none && volumeFixed == null) {
@@ -65,26 +67,37 @@ class ChartHeightRatioSetting {
   /// 若高度全為固定值, 取得總高度
   /// 若不是全為固定值, 則回傳null
   double? getFixedHeight({
+    required MainChartState mainChartState,
     required VolumeChartState volumeChartState,
     required IndicatorChartState indicatorChartState,
   }) {
     if (!isHeightFixed(
+      mainChartState: mainChartState,
       volumeChartState: volumeChartState,
       indicatorChartState: indicatorChartState,
     )) {
       return null;
     }
+    final isMainEmpty = mainChartState == MainChartState.none;
+    final isVolumeEmpty = volumeChartState == VolumeChartState.none;
+    final isIndicatorEmpty = indicatorChartState == IndicatorChartState.none;
 
-    final mainHeight = mainFixed!;
-    final volumeHeight =
-        volumeChartState == VolumeChartState.none ? 0 : volumeFixed!;
-    final indicatorHeight =
-        indicatorChartState == IndicatorChartState.none ? 0 : indicatorFixed!;
+    final scrollBarH = (isMainEmpty || (isVolumeEmpty && isIndicatorEmpty))
+        ? 0.0
+        : scrollBarFixed;
+
+    final bottomTimeH = (isMainEmpty && isVolumeEmpty && isIndicatorEmpty)
+        ? 0.0
+        : bottomTimeFixed;
+
+    final mainHeight = isMainEmpty ? 0 : mainFixed!;
+    final volumeHeight = isVolumeEmpty ? 0 : volumeFixed!;
+    final indicatorHeight = isIndicatorEmpty ? 0 : indicatorFixed!;
     return mainHeight +
         volumeHeight +
         indicatorHeight +
-        bottomTimeFixed +
-        scrollBarFixed;
+        bottomTimeH +
+        scrollBarH;
   }
 
   const ChartHeightRatioSetting({
@@ -102,28 +115,43 @@ class ChartHeightRatioSetting {
 
   /// 分配各個主題占用高度
   /// [mainChartOffsetY] - 主圖表的高度偏移增減
-  ChartHeightCampute<double> computeChartHeight({
+  ChartHeightCompute<double> computeChartHeight({
     required double totalHeight,
+    required MainChartState mainChartState,
     required VolumeChartState volumeChartState,
     required IndicatorChartState indicatorChartState,
     required double mainChartHeightOffset,
   }) {
-    final remainTotalHeight = totalHeight - bottomTimeFixed - scrollBarFixed;
+    final isMainEmpty = mainChartState == MainChartState.none;
+    final isVolumeEmpty = volumeChartState == VolumeChartState.none;
+    final isIndicatorEmpty = indicatorChartState == IndicatorChartState.none;
+
+    final scrollBarH = (isMainEmpty || (isVolumeEmpty && isIndicatorEmpty))
+        ? 0.0
+        : scrollBarFixed;
+
+    final bottomTimeH = (isMainEmpty && isVolumeEmpty && isIndicatorEmpty)
+        ? 0.0
+        : bottomTimeFixed;
+
+    final remainTotalHeight = totalHeight - bottomTimeH - scrollBarH;
 
     double? mainHeight, volumeHeight, indicatorHeight;
-    if (_isMainSetting) {
+    if (mainChartState == MainChartState.none) {
+      mainHeight = 0;
+    } else if (_isMainSetting) {
       mainHeight =
           mainFixed ?? (mainRatio! * remainTotalHeight).floorToDouble();
     }
 
-    if (volumeChartState == VolumeChartState.none) {
+    if (isVolumeEmpty) {
       volumeHeight = 0;
     } else if (_isVolumeSetting) {
       volumeHeight =
           volumeFixed ?? (volumeRatio! * remainTotalHeight).floorToDouble();
     }
 
-    if (indicatorChartState == IndicatorChartState.none) {
+    if (isIndicatorEmpty) {
       indicatorHeight = 0;
     } else if (_isIndicatorSetting) {
       indicatorHeight = indicatorFixed ??
@@ -173,24 +201,24 @@ class ChartHeightRatioSetting {
 
     // print('高: $mainHeight, $volumeHeight, $indicatorHeight');
 
-    return ChartHeightCampute<double>(
+    return ChartHeightCompute<double>(
       main: mainHeight,
       volume: volumeHeight,
       indicator: indicatorHeight,
-      bottomTime: bottomTimeFixed,
-      scrollBar: scrollBarFixed,
+      bottomTime: bottomTimeH,
+      scrollBar: scrollBarH,
     );
   }
 }
 
-class ChartHeightCampute<T> {
+class ChartHeightCompute<T> {
   final T main;
   final T volume;
   final T indicator;
   final T bottomTime;
   final T scrollBar;
 
-  ChartHeightCampute({
+  ChartHeightCompute({
     required this.main,
     required this.volume,
     required this.indicator,
@@ -199,9 +227,9 @@ class ChartHeightCampute<T> {
   });
 }
 
-extension HeightToRect on ChartHeightCampute<double> {
+extension HeightToRect on ChartHeightCompute<double> {
   /// 將高轉換為Rect
-  ChartHeightCampute<Rect> toRect(Size size) {
+  ChartHeightCompute<Rect> toRect(Size size) {
     final mainRect = Rect.fromLTRB(0, 0, size.width, main);
     final scrollBarRect = Rect.fromLTWH(0, main, size.width, scrollBar);
     final volumeRect =
@@ -210,7 +238,7 @@ extension HeightToRect on ChartHeightCampute<double> {
         Rect.fromLTWH(0, volumeRect.bottom, size.width, indicator);
     final bottomTimeRect =
         Rect.fromLTWH(0, indicatorRect.bottom, size.width, bottomTime);
-    return ChartHeightCampute<Rect>(
+    return ChartHeightCompute<Rect>(
       main: mainRect,
       volume: volumeRect,
       indicator: indicatorRect,

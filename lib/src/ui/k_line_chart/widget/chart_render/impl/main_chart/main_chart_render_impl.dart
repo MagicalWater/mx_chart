@@ -29,7 +29,8 @@ class MainChartRenderImpl extends MainChartRender
   @override
   void paintGrid(Canvas canvas, Rect rect) {
     final chartUiStyle = dataViewer.chartUiStyle;
-    gripPaint.color = chartUiStyle.colorSetting.grid;
+    gridPaint.color = chartUiStyle.colorSetting.grid;
+    gridPaint.strokeWidth = chartUiStyle.sizeSetting.gridLine;
     final gridColumns = chartUiStyle.sizeSetting.gridColumns;
     final topPadding = sizes.topPadding;
     final bottomPadding = sizes.bottomPadding;
@@ -49,7 +50,7 @@ class MainChartRenderImpl extends MainChartRender
       canvas.drawLine(
         Offset(0, y),
         Offset(rect.width, y),
-        gripPaint,
+        gridPaint,
       );
     }
 
@@ -59,7 +60,7 @@ class MainChartRenderImpl extends MainChartRender
       canvas.drawLine(
         Offset(x, topPadding / 3),
         Offset(x, rect.bottom),
-        gripPaint,
+        gridPaint,
       );
     }
   }

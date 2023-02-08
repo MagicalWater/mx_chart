@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 /// 主圖表的尺寸相關設定
 class VolumeChartSizeSetting {
   /// 左上角的各指標提示

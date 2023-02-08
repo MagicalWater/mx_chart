@@ -28,7 +28,8 @@ class KDJChartRenderImpl extends KDJChartRender
   @override
   void paintGrid(Canvas canvas, Rect rect) {
     final chartUiStyle = dataViewer.chartUiStyle;
-    gripPaint.color = chartUiStyle.colorSetting.grid;
+    gridPaint.color = chartUiStyle.colorSetting.grid;
+    gridPaint.strokeWidth = chartUiStyle.sizeSetting.gridLine;
 
     final gridColumns = chartUiStyle.sizeSetting.gridColumns;
     final contentWidth = rect.width - chartUiStyle.sizeSetting.rightSpace;
@@ -38,7 +39,7 @@ class KDJChartRenderImpl extends KDJChartRender
       canvas.drawLine(
         Offset(x, rect.top),
         Offset(x, rect.bottom),
-        gripPaint,
+        gridPaint,
       );
     }
   }

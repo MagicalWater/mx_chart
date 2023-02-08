@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
 import '../chart_gesture.dart';
@@ -24,7 +25,7 @@ mixin GestureDistributionMixin on ChartGesture
   late Offset _initDragPoint;
 
   /// 初始scale distance
-  late double _initSclaeDistance;
+  late double _initScaleDistance;
 
   /// 長按狀態是否可被拖拉繼承
   /// 是 -> 抬起時不標示為長按抬起
@@ -64,7 +65,7 @@ mixin GestureDistributionMixin on ChartGesture
     final pointers = activePointer.values.toList();
     final point1 = pointers[0];
     final point2 = pointers[1];
-    return (point2.global - point1.global).distance / _initSclaeDistance;
+    return (point2.global - point1.global).distance / _initScaleDistance;
   }
 
   @override
@@ -78,7 +79,9 @@ mixin GestureDistributionMixin on ChartGesture
         return TouchStatus.longPress;
       } else {
         // 正常狀態不會在此
-        print('GestureDistributionMixin: 觸摸狀態異常');
+        if (kDebugMode) {
+          print('GestureDistributionMixin: 觸摸狀態異常');
+        }
         throw 'GestureDistributionMixin: 觸摸狀態異常';
       }
     } else {
@@ -95,7 +98,7 @@ mixin GestureDistributionMixin on ChartGesture
       isDrag = false;
       isScale = true;
 
-      _initSclaeDistance = _currentTouchDistance;
+      _initScaleDistance = _currentTouchDistance;
 
       _cancelLongPressTimer();
 
