@@ -21,6 +21,9 @@ class KLineDataInfoTooltip extends StatelessWidget {
   /// 成交量格式化
   final String Function(num volume)? volumeFormatter;
 
+  /// 主圖表區塊
+  final Rect? mainRect;
+
   KLineData get data => longPressData.data;
 
   KLineData? get prevData => longPressData.prevData;
@@ -53,6 +56,7 @@ class KLineDataInfoTooltip extends StatelessWidget {
   const KLineDataInfoTooltip({
     Key? key,
     required this.longPressData,
+    this.mainRect,
     this.uiStyle = const KLineDataTooltipUiStyle(),
     this.tooltipPrefix = const TooltipPrefix(),
     this.dateTimeFormatter = _defaultDateTimeFormatter,
@@ -62,6 +66,7 @@ class KLineDataInfoTooltip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final top = mainRect?.top ?? 0;
     return Align(
       alignment: longPressData.isLongPressAtLeft
           ? Alignment.topRight
@@ -70,7 +75,7 @@ class KLineDataInfoTooltip extends StatelessWidget {
         margin: EdgeInsets.only(
           left: sizes.horizontalMargin,
           right: sizes.horizontalMargin,
-          top: sizes.topMargin,
+          top: top + sizes.topMargin,
         ),
         padding: EdgeInsets.symmetric(
           horizontal: sizes.horizontalPadding,

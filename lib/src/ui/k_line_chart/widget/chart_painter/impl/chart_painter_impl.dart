@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mx_chart/src/ui/k_line_chart/widget/chart_render/impl/drag_bar_background/ui_style/drag_bar_background_ui_style.dart';
 
 import '../../../chart_gesture/chart_gesture.dart';
 import '../../../model/model.dart';
@@ -51,6 +52,9 @@ class ChartPainterImpl extends ChartPainter
   @override
   final KDJChartUiStyle kdjChartUiStyle;
 
+  @override
+  final DragBarBackgroundUiStyle dragBarUiStyle;
+
   /// 主圖表顯示的資料
   @override
   final MainChartState mainChartState;
@@ -95,6 +99,15 @@ class ChartPainterImpl extends ChartPainter
   /// 主圖表的高度偏移
   final double mainChartHeightOffset;
 
+  /// 圖表組件排序
+  final List<ChartComponent> componentSort;
+
+  /// 拖拉bar是否可以顯示
+  final bool canDragBarShow;
+
+  /// 拖拉bar是否顯示
+  final bool dragBar;
+
   ChartPainterImpl({
     required this.datas,
     required ChartGesture chartGesture,
@@ -109,12 +122,16 @@ class ChartPainterImpl extends ChartPainter
     required this.rsiChartUiStyle,
     required this.wrChartUiStyle,
     required this.kdjChartUiStyle,
+    required this.dragBarUiStyle,
     required this.indicatorSetting,
     required this.priceFormatter,
     required this.volumeFormatter,
     required this.xAxisDateTimeFormatter,
     required ValueChanged<DrawContentInfo>? onDrawInfo,
     required ValueChanged<LongPressData?>? onLongPressData,
+    required this.componentSort,
+    required this.dragBar,
+    required this.canDragBarShow,
     this.pricePositionGetter,
     this.onRect,
     this.mainChartHeightOffset = 0,
@@ -150,16 +167,10 @@ class ChartPainterImpl extends ChartPainter
           volumeChartState: volumeChartState,
           indicatorChartState: indicatorChartState,
           mainChartHeightOffset: mainChartHeightOffset,
+          canDragBarShow: canDragBarShow,
+          dragBar: dragBar,
         )
-        .toRect(size);
-
-    // 數值軸
-    final rightValueRect = Rect.fromLTWH(
-      size.width - chartUiStyle.sizeSetting.rightSpace,
-      0,
-      chartUiStyle.sizeSetting.rightSpace,
-      size.height - chartUiStyle.heightRatioSetting.bottomTimeFixed,
-    );
+        .toRect(size, componentSort: componentSort);
 
     onRect?.call(computeRect);
 
@@ -177,26 +188,43 @@ class ChartPainterImpl extends ChartPainter
     paintIndicatorChart(canvas, computeRect.indicator);
 
     // 繪製時間軸
-    paintTimeAxis(canvas, computeRect.bottomTime);
+    paintTimeAxis(canvas, computeRect.timeline);
 
     // 繪製拖拉bar的背景
-    paintScrollBarBackground(
+    paintDragBarBackground(
       canvas: canvas,
-      rect: computeRect.scrollBar,
+      rect: computeRect.dragBar,
+    );
+
+    // 主圖表數值軸
+    final rightValueRect = Rect.fromLTWH(
+      size.width - chartUiStyle.sizeSetting.rightSpace,
+      0,
+      chartUiStyle.sizeSetting.rightSpace,
+      size.height,
     );
 
     // 繪製數值軸
-    paintValueAxisLine(canvas, rightValueRect);
+    paintValueAxisLine(
+      canvas,
+      rightValueRect,
+      computeRect.timeline,
+    );
 
     if (datas.isEmpty) {
       return;
     }
 
     // 繪製長按豎線
-    paintLongPressCrossLine(canvas, size, computeRect.main);
+    paintLongPressCrossLine(
+      canvas,
+      size,
+      computeRect.main,
+      computeRect.timeline,
+    );
 
     // 繪製長按時間
-    paintLongPressTime(canvas, computeRect.bottomTime);
+    paintLongPressTime(canvas, computeRect.timeline);
   }
 
   @override

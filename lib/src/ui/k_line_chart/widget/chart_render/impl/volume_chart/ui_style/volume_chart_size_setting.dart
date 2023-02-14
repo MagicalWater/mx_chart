@@ -14,11 +14,19 @@ class VolumeChartSizeSetting {
   final double topPadding;
   final double bottomPadding;
 
+  /// 頂部分隔線
+  final double topDivider;
+
+  /// 底部分隔線
+  final double bottomDivider;
+
   const VolumeChartSizeSetting({
     this.indexTip = 11,
     this.barWidth = 7,
     this.rightMaxValueText = 12,
     this.topPadding = 15,
     this.bottomPadding = 4,
+    this.topDivider = 1,
+    this.bottomDivider = 1,
   });
 }

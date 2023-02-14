@@ -57,6 +57,12 @@ class MainChartColorSetting {
   final Color minValueText;
   final Color maxValueText;
 
+  /// 頂部分隔線
+  final Color topDivider;
+
+  /// 底部分隔線
+  final Color bottomDivider;
+
   const MainChartColorSetting({
     this.background = const Color(0xff1e2129),
     this.maLine = const [
@@ -90,5 +96,7 @@ class MainChartColorSetting {
     ],
     this.minValueText = const Color(0xffffffff),
     this.maxValueText = const Color(0xffffffff),
+    this.topDivider = const Color(0xff4C86CD),
+    this.bottomDivider = const Color(0xff4C86CD),
   });
 }

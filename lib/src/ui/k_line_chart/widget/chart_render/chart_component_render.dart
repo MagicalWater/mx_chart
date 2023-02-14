@@ -11,6 +11,9 @@ abstract class ChartComponentRender {
   /// 繪製格線
   void paintGrid(Canvas canvas, Rect rect);
 
+  /// 繪製頂部/底部分隔線
+  void paintDivider(Canvas canvas, Rect rect);
+
   /// 繪製最上方的說明文字
   void paintTopValueText(Canvas canvas, Rect rect);
 

@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mx_chart/src/ui/k_line_chart/widget/chart_render/drag_bar_render.dart';
 import 'package:mx_chart/src/util/date_util.dart';
 
 import '../../widget/position_layout.dart';
@@ -33,6 +34,7 @@ export '../widget/chart_render/main_chart_render.dart';
 export '../widget/chart_render/rsi_chart_render.dart';
 export '../widget/chart_render/volume_chart_render.dart';
 export '../widget/chart_render/wr_chart_render.dart';
+export '../widget/chart_render/drag_bar_render.dart';
 export '../widget/k_line_data_tooltip/k_line_data_tooltip.dart';
 
 part '../model/k_line_chart_controller.dart';
@@ -41,6 +43,7 @@ part '../model/k_line_chart_controller.dart';
 typedef KLineChartTooltipBuilder = Widget Function(
   BuildContext context,
   LongPressData data,
+  Rect mainRect,
 );
 
 /// 價格標示構建
@@ -94,6 +97,9 @@ class KLineChart extends StatefulWidget {
   /// kdj技術線的ui
   final KDJChartUiStyle kdjChartUiStyle;
 
+  /// 拖拉bar背景
+  final DragBarBackgroundUiStyle dragBarBackgroundUiStyle;
+
   /// 主圖表顯示
   final MainChartState mainChartState;
 
@@ -142,6 +148,12 @@ class KLineChart extends StatefulWidget {
   /// 主圖表下方的拖拉bar元件構建
   final Widget Function(BuildContext context, bool isLongPress)? dragBarBuilder;
 
+  /// 圖表組件排序
+  final List<ChartComponent> componentSort;
+
+  /// 拖拉bar是否顯示
+  final bool dragBar;
+
   const KLineChart({
     Key? key,
     required this.datas,
@@ -151,11 +163,12 @@ class KLineChart extends StatefulWidget {
     this.indicatorChartState = IndicatorChartState.kdj,
     this.chartUiStyle = const KLineChartUiStyle(),
     this.mainChartUiStyle = const MainChartUiStyle(),
-    this.volumeChartUiStyle = const VolumeChartUiStyle(),
+    this.volumeChartUiStyle = const VolumeChartUiStyle(gridEnabled: false),
     this.macdChartUiStyle = const MACDChartUiStyle(),
     this.rsiChartUiStyle = const RSIChartUiStyle(),
     this.wrChartUiStyle = const WRChartUiStyle(),
     this.kdjChartUiStyle = const KDJChartUiStyle(),
+    this.dragBarBackgroundUiStyle = const DragBarBackgroundUiStyle(),
     this.indicatorSetting = const IndicatorSetting(),
     this.tooltipPrefix = const TooltipPrefix(),
     this.tooltipUiStyle = const KLineDataTooltipUiStyle(),
@@ -168,6 +181,14 @@ class KLineChart extends StatefulWidget {
     this.priceTagBuilder,
     this.longPressVibrate = true,
     this.dragBarBuilder,
+    this.componentSort = const [
+      ChartComponent.main,
+      ChartComponent.dragBar,
+      ChartComponent.volume,
+      ChartComponent.indicator,
+      ChartComponent.timeline,
+    ],
+    this.dragBar = true,
   }) : super(key: key);
 
   /// 預設x軸時間格式化
@@ -230,11 +251,12 @@ class _KLineChartState extends State<KLineChart>
   /// 長按的資料串流
   late final Stream<LongPressData?> _longPressDataStream;
 
-  /// scroll bar 的 rect
-  final _scrollBarRectStreamController = StreamController<Rect>();
+  /// 圖表組件 的 rect
+  final _componentRectStreamController =
+      StreamController<ChartHeightCompute<Rect>>();
 
   /// scroll bar 的 rect 串流
-  late final Stream<Rect> _scrollBarRectStream;
+  late final Stream<ChartHeightCompute<Rect>> _componentRectStream;
 
   /// 主圖表的高度偏移
   double mainChartHeightOffset = 0;
@@ -243,13 +265,23 @@ class _KLineChartState extends State<KLineChart>
   /// 因此在滑動開始前要先將當前原本的偏移存起來
   double oriMainChartHeightOffset = 0;
 
+  /// dragBar是否可以顯示
+  late bool canDragBarShow;
+
+  /// dragBar是否處於main圖表底下
+  late bool isDragBarUnderMain;
+
   @override
   void initState() {
+    canDragBarShow = widget.componentSort.canDragBarShow;
+    isDragBarUnderMain = widget.componentSort.isDragBarUnderMain;
+
     realTimePrice = widget.datas.lastOrNull?.close;
 
     _pricePositionStream = _pricePositionStreamController.stream.distinct();
     _longPressDataStream = _longPressDataStreamController.stream.distinct();
-    _scrollBarRectStream = _scrollBarRectStreamController.stream.distinct();
+    _componentRectStream =
+        _componentRectStreamController.stream.asBroadcastStream().distinct();
 
     // 慣性滑動控制器
     final controller = AnimationController(
@@ -275,6 +307,9 @@ class _KLineChartState extends State<KLineChart>
 
   @override
   void didUpdateWidget(covariant KLineChart oldWidget) {
+    canDragBarShow = widget.componentSort.canDragBarShow;
+    isDragBarUnderMain = widget.componentSort.isDragBarUnderMain;
+
     realTimePrice = widget.datas.lastOrNull?.close;
 
     if (oldWidget.controller != widget.controller) {
@@ -294,7 +329,8 @@ class _KLineChartState extends State<KLineChart>
     chartGesture.dispose();
     _pricePositionStreamController.close();
     _longPressDataStreamController.close();
-    _scrollBarRectStreamController.close();
+    _componentRectStreamController.close();
+    _componentRectStreamController.close();
     widget.controller?._bind = null;
     super.dispose();
   }
@@ -306,6 +342,8 @@ class _KLineChartState extends State<KLineChart>
           mainChartState: widget.mainChartState,
           volumeChartState: widget.volumeChartState,
           indicatorChartState: widget.indicatorChartState,
+          canDragBarShow: canDragBarShow,
+          dragBar: widget.dragBar,
         ) ??
         double.infinity;
     return TouchGestureDetector(
@@ -350,11 +388,15 @@ class _KLineChartState extends State<KLineChart>
                 rsiChartUiStyle: widget.rsiChartUiStyle,
                 wrChartUiStyle: widget.wrChartUiStyle,
                 kdjChartUiStyle: widget.kdjChartUiStyle,
+                dragBarUiStyle: widget.dragBarBackgroundUiStyle,
                 indicatorSetting: widget.indicatorSetting,
                 priceFormatter: widget.priceFormatter,
                 volumeFormatter: widget.volumeFormatter,
                 xAxisDateTimeFormatter: widget.xAxisDateTimeFormatter,
                 mainChartHeightOffset: mainChartHeightOffset,
+                componentSort: widget.componentSort,
+                dragBar: widget.dragBar,
+                canDragBarShow: canDragBarShow,
                 onDrawInfo: (info) {
                   chartGesture.setDrawInfo(info);
                   if (info.maxScrollX == 0) {
@@ -384,7 +426,7 @@ class _KLineChartState extends State<KLineChart>
                   _pricePositionStreamController.add(position);
                 },
                 onRect: (compute) {
-                  _scrollBarRectStreamController.add(compute.scrollBar);
+                  _componentRectStreamController.add(compute);
                 },
               ),
             ),
@@ -397,7 +439,7 @@ class _KLineChartState extends State<KLineChart>
           _tooltip(),
 
           // 高度比例拖曳bar
-          _heightRatioScrollBar(),
+          _heightRatioDragBar(),
         ],
       ),
     );
@@ -405,32 +447,38 @@ class _KLineChartState extends State<KLineChart>
 
   /// 長按顯示的tooltip
   Widget _tooltip() {
-    return StreamBuilder<LongPressData?>(
-      stream: _longPressDataStream,
+    return StreamBuilder<ChartHeightCompute<Rect>>(
+      stream: _componentRectStream,
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final data = snapshot.data!;
-          return widget.tooltipBuilder?.call(context, data) ??
-              KLineDataInfoTooltip(
-                longPressData: data,
-                priceFormatter: widget.priceFormatter,
-                volumeFormatter: widget.volumeFormatter,
-                uiStyle: widget.tooltipUiStyle,
-                tooltipPrefix: widget.tooltipPrefix,
-              );
-        }
-        return const SizedBox.shrink();
+        final mainRect = snapshot.hasData ? snapshot.data!.main : null;
+        return StreamBuilder<LongPressData?>(
+          stream: _longPressDataStream,
+          builder: (context, snapshot) {
+            if (mainRect != null && !mainRect.isEmpty && snapshot.hasData) {
+              final data = snapshot.data!;
+              return widget.tooltipBuilder?.call(context, data, mainRect) ??
+                  KLineDataInfoTooltip(
+                    longPressData: data,
+                    priceFormatter: widget.priceFormatter,
+                    volumeFormatter: widget.volumeFormatter,
+                    uiStyle: widget.tooltipUiStyle,
+                    tooltipPrefix: widget.tooltipPrefix,
+                  );
+            }
+            return const SizedBox.shrink();
+          },
+        );
       },
     );
   }
 
   /// 高度分配拖拉bar
-  Widget _heightRatioScrollBar() {
-    return StreamBuilder<Rect>(
-      stream: _scrollBarRectStream,
+  Widget _heightRatioDragBar() {
+    return StreamBuilder<ChartHeightCompute<Rect>>(
+      stream: _componentRectStream,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final rect = snapshot.data!;
+          final rect = snapshot.data!.dragBar;
 
           if (rect.isEmpty) {
             return const SizedBox.shrink();
@@ -446,7 +494,11 @@ class _KLineChartState extends State<KLineChart>
                 oriMainChartHeightOffset = mainChartHeightOffset;
               },
               onDragUpdate: (offset) {
-                mainChartHeightOffset = oriMainChartHeightOffset + offset;
+                if (isDragBarUnderMain) {
+                  mainChartHeightOffset = oriMainChartHeightOffset + offset;
+                } else {
+                  mainChartHeightOffset = oriMainChartHeightOffset - offset;
+                }
                 setState(() {});
               },
               builder: widget.dragBarBuilder,
@@ -585,5 +637,39 @@ class _KLineChartState extends State<KLineChart>
   /// 將圖表滾動回原點
   Future<void> scrollToRight({bool animated = true}) {
     return chartGesture.scrollToRight(animated: animated);
+  }
+}
+
+extension ChartComponentSort on List<ChartComponent> {
+  bool get canDragBarShow {
+    final index = indexOf(ChartComponent.dragBar);
+    if (index != -1) {
+      final prevIndex = index - 1;
+      final nextIndex = index + 1;
+      final prevE = prevIndex >= 0 ? this[prevIndex] : null;
+      final nextE = nextIndex < length ? this[nextIndex] : null;
+      final isPrevMain = prevE == ChartComponent.main;
+      final isNextMain = nextE == ChartComponent.main;
+
+      final isPrevSub =
+          prevE == ChartComponent.volume || prevE == ChartComponent.indicator;
+      final isNextSub =
+          nextE == ChartComponent.volume || nextE == ChartComponent.indicator;
+
+      return (isPrevMain && isNextSub) || (isPrevSub && isNextMain);
+    }
+    return false;
+  }
+
+  bool get isDragBarUnderMain {
+    final index = indexOf(ChartComponent.dragBar);
+    if (index != -1) {
+      final prevIndex = index - 1;
+      final prevE = prevIndex >= 0 ? this[prevIndex] : null;
+      final isPrevMain = prevE == ChartComponent.main;
+
+      return isPrevMain;
+    }
+    return false;
   }
 }

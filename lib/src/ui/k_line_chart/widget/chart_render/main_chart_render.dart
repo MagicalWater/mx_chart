@@ -23,6 +23,7 @@ abstract class MainChartRender extends ChartRender
     initValue(rect);
     paintBackground(canvas, rect);
     paintGrid(canvas, rect);
+    paintDivider(canvas, rect);
 
     // 可以繪製圖表資料的區塊
     final chartRect = Rect.fromLTRB(

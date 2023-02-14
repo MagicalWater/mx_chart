@@ -16,6 +16,7 @@ abstract class VolumeChartRender extends ChartRender
     initValue(rect);
     paintBackground(canvas, rect);
     paintGrid(canvas, rect);
+    paintDivider(canvas, rect);
     canvas.save();
     canvas.clipRect(Rect.fromLTRB(
       rect.left,

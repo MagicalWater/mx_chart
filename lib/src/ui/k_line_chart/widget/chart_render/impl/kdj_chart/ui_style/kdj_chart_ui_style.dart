@@ -11,8 +11,12 @@ class KDJChartUiStyle {
   /// 尺寸相關設定
   final KDJChartSizeSetting sizeSetting;
 
+  /// 是否顯示grid
+  final bool gridEnabled;
+
   const KDJChartUiStyle({
     this.colorSetting = const KDJChartColorSetting(),
     this.sizeSetting = const KDJChartSizeSetting(),
+    this.gridEnabled = true,
   });
 }

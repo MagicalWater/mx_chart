@@ -31,14 +31,17 @@ class ChartColorSetting {
   /// 長按時, 對應y軸的數值邊框
   final Color longPressTimeBorder;
 
-  /// 下方時間軸的文字顏色
-  final Color bottomTimeText;
+  /// 時間軸的文字顏色
+  final Color timelineText;
 
-  /// 下方時間軸的背景
-  final Color bottomTimeBg;
+  /// 時間軸的背景
+  final Color timelineBg;
 
-  /// 下方時間軸的線條
-  final Color bottomTimeLine;
+  /// 時間軸的上方分隔線
+  final Color timelineTopDivider;
+
+  /// 時間軸的下方分隔線
+  final Color timelineBottomDivider;
 
   /// 主圖表下方的拖曳bar, 一般型態時的顏色
   final Color dragBar;
@@ -61,9 +64,10 @@ class ChartColorSetting {
     this.longPressTime = Colors.white,
     this.longPressTimeBg = const Color(0xff0D1722),
     this.longPressTimeBorder = const Color(0xff6C7A86),
-    this.bottomTimeText = const Color(0xff60738E),
-    this.bottomTimeBg = const Color(0xff1e2129),
-    this.bottomTimeLine = const Color(0xff3d6086),
+    this.timelineText = const Color(0xff60738E),
+    this.timelineBg = const Color(0xff1e2129),
+    this.timelineTopDivider = const Color(0xff3d6086),
+    this.timelineBottomDivider = const Color(0xff3d6086),
     this.dragBar = const Color(0xff3d6086),
     this.dragBarDragging = const Color(0xff3d6086),
     this.dragBarTriangle = const Color(0xffb1bfd0),

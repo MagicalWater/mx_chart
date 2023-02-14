@@ -37,10 +37,13 @@ class ChartSizeSetting {
   final double longPressTimeBorderHorizontalPadding;
 
   /// 下方時間軸的文字大小
-  final double bottomTimeText;
+  final double timelineText;
 
-  /// 下方時間軸的線
-  final double bottomTimeLine;
+  /// 下方時間軸上方分隔線
+  final double timelineTopDivider;
+
+  /// 下方時間軸下方分隔線
+  final double timelineBottomDivider;
 
   /// 主圖表的拖曳bar線條高度
   final double dragBarLineHeight;
@@ -64,8 +67,9 @@ class ChartSizeSetting {
     this.longPressTime = 10,
     this.longPressTimeBorderVerticalPadding = 2,
     this.longPressTimeBorderHorizontalPadding = 12,
-    this.bottomTimeText = 10,
-    this.bottomTimeLine = 1,
+    this.timelineText = 10,
+    this.timelineTopDivider = 1,
+    this.timelineBottomDivider = 1,
     this.dragBarLineHeight = 1,
     this.rightValueLine = 1,
   });

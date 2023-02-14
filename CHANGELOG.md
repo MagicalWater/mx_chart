@@ -1,9 +1,19 @@
+## 1.1.0+1
+- Variable renaming
+  * Rename the 'scrollBar' to 'dragBar' to highlight the meaning of dragging the Bar.
+  * Rename 'bottomTime' to 'timeline', because the timeline that can be sorted by the component is not necessarily at the bottom.
+
+- Add 'bottomDivider' and 'topDivider' to the size and color settings of the chart.
+- Add 'componentSort' to set the component sorting of the chart.
+- Add the 'dragBar' variable to indicate whether to display the drag bar.
+- Add 'gridEnabled' at uiStyle of all components to set whether to display the grid.
+
 ## 1.0.7+1
 - Added MainChartState.none, which means hidden.
 - Added grid line stroke setting.
 - Fixed the problem that the height proportional dragging bar was not centered.
-- Added the color setting of the top line of the timeline
-- Fixed the problem that volumeFormatter was invalid
+- Added the color setting of the top line of the timeline.
+- Fixed the problem that volumeFormatter was invalid.
 
 ## 1.0.6+1
 - Add web platform support.

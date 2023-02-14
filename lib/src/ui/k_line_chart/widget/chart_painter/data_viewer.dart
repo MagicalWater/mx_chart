@@ -1,4 +1,6 @@
 
+import 'package:mx_chart/src/ui/k_line_chart/widget/chart_render/impl/drag_bar_background/drag_bar_background_render_impl.dart';
+
 import '../../model/model.dart';
 import '../chart_render/impl/kdj_chart/ui_style/kdj_chart_ui_style.dart';
 import '../chart_render/impl/macd_chart/ui_style/macd_chart_ui_style.dart';
@@ -42,6 +44,9 @@ abstract class DataViewer {
 
   /// kdj圖表ui風格
   abstract final KDJChartUiStyle kdjChartUiStyle;
+
+  /// 拖拉bar ui風格
+  abstract final DragBarBackgroundUiStyle dragBarUiStyle;
 
   /// 主圖表顯示的資料
   abstract final MainChartState mainChartState;

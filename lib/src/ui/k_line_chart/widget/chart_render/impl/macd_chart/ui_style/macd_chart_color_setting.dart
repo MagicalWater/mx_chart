@@ -30,6 +30,12 @@ class MACDChartColorSetting {
   /// 右側數值顏色
   final Color rightValueText;
 
+  /// 頂部分隔線
+  final Color topDivider;
+
+  /// 底部分隔線
+  final Color bottomDivider;
+
   const MACDChartColorSetting({
     this.background = const Color(0xff1e2129),
     this.difColor = const Color(0xffae33ba),
@@ -41,5 +47,7 @@ class MACDChartColorSetting {
     this.negativeDownColor = const Color(0xffc6676c),
     this.negativeUpColor = const Color(0xff82363a),
     this.rightValueText = const Color(0xff60738E),
+    this.topDivider = const Color(0xff4C86CD),
+    this.bottomDivider = const Color(0xff4C86CD),
   });
 }

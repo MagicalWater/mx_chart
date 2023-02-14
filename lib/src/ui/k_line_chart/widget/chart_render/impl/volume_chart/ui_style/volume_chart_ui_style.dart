@@ -11,8 +11,12 @@ class VolumeChartUiStyle {
   /// 尺寸相關設定
   final VolumeChartSizeSetting sizeSetting;
 
+  /// 是否顯示grid
+  final bool gridEnabled;
+
   const VolumeChartUiStyle({
     this.colorSetting = const VolumeChartColorSetting(),
     this.sizeSetting = const VolumeChartSizeSetting(),
+    this.gridEnabled = true,
   });
 }

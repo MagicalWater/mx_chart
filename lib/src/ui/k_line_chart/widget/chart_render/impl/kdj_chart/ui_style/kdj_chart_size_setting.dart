@@ -17,6 +17,12 @@ class KDJChartSizeSetting {
   final double topPadding;
   final double bottomPadding;
 
+  /// 頂部分隔線
+  final double topDivider;
+
+  /// 底部分隔線
+  final double bottomDivider;
+
   const KDJChartSizeSetting({
     this.indexTip = 11,
     this.barWidth = 7,
@@ -24,5 +30,7 @@ class KDJChartSizeSetting {
     this.rightValueText = 12,
     this.topPadding = 18,
     this.bottomPadding = 4,
+    this.topDivider = 0,
+    this.bottomDivider = 0,
   });
 }

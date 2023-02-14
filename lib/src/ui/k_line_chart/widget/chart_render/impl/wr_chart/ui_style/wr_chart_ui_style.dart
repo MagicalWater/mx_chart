@@ -11,8 +11,12 @@ class WRChartUiStyle {
   /// 尺寸相關設定
   final WRChartSizeSetting sizeSetting;
 
+  /// 是否顯示grid
+  final bool gridEnabled;
+
   const WRChartUiStyle({
     this.colorSetting = const WRChartColorSetting(),
     this.sizeSetting = const WRChartSizeSetting(),
+    this.gridEnabled = true,
   });
 }

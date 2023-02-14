@@ -28,6 +28,9 @@ class RSIChartRenderImpl extends RSIChartRender
 
   @override
   void paintGrid(Canvas canvas, Rect rect) {
+    if (!uiStyle.gridEnabled) {
+      return;
+    }
     final chartUiStyle = dataViewer.chartUiStyle;
     gridPaint.color = chartUiStyle.colorSetting.grid;
     gridPaint.strokeWidth = chartUiStyle.sizeSetting.gridLine;
@@ -40,6 +43,33 @@ class RSIChartRenderImpl extends RSIChartRender
         Offset(x, rect.top),
         Offset(x, rect.bottom),
         gridPaint,
+      );
+    }
+  }
+
+  @override
+  void paintDivider(Canvas canvas, Rect rect) {
+    final rightSpace = dataViewer.chartUiStyle.sizeSetting.rightSpace;
+    final rectTop = rect.top;
+    final rectBottom = rect.bottom;
+
+    // 繪製頂部分隔線
+    if (sizes.topDivider != 0) {
+      gridPaint.strokeWidth = sizes.topDivider;
+      canvas.drawLine(
+        Offset(0, rectTop),
+        Offset(rect.width - rightSpace, rectTop),
+        gridPaint..color = colors.topDivider,
+      );
+    }
+
+    // 繪製底部分隔線
+    if (sizes.bottomDivider != 0) {
+      gridPaint.strokeWidth = sizes.bottomDivider;
+      canvas.drawLine(
+        Offset(0, rectBottom),
+        Offset(rect.width - rightSpace, rectBottom),
+        gridPaint..color = colors.bottomDivider,
       );
     }
   }

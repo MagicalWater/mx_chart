@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../../../chart_painter/data_viewer.dart';
-import '../../scroll_bar_render.dart';
+import '../../drag_bar_render.dart';
 import '../main_chart/ui_style/main_chart_ui_style.dart';
 
-export 'ui_style/macd_chart_ui_style.dart';
+export 'ui_style/drag_bar_background_ui_style.dart';
 
-class ScrollBarBackgroundRenderImpl extends ScrollBarBackgroundRender {
-  MainChartUiStyle get uiStyle => dataViewer.mainChartUiStyle;
+class DragBarBackgroundRenderImpl extends DragBarBackgroundRender {
+  MainChartUiStyle get mainStyle => dataViewer.mainChartUiStyle;
 
-  MainChartColorSetting get colors => uiStyle.colorSetting;
+  DragBarBackgroundUiStyle get uiStyle => dataViewer.dragBarUiStyle;
+
+  MainChartColorSetting get colors => mainStyle.colorSetting;
 
   final Paint backgroundPaint = Paint();
   final Paint gridPaint = Paint();
 
-  ScrollBarBackgroundRenderImpl({
+  DragBarBackgroundRenderImpl({
     required DataViewer dataViewer,
   }) : super(dataViewer: dataViewer);
 
@@ -29,6 +31,9 @@ class ScrollBarBackgroundRenderImpl extends ScrollBarBackgroundRender {
 
   @override
   void paintGrid(Canvas canvas, Rect rect) {
+    if (!uiStyle.gridEnabled) {
+      return;
+    }
     final chartUiStyle = dataViewer.chartUiStyle;
     gridPaint.color = chartUiStyle.colorSetting.grid;
     gridPaint.strokeWidth = chartUiStyle.sizeSetting.gridLine;
@@ -44,6 +49,9 @@ class ScrollBarBackgroundRenderImpl extends ScrollBarBackgroundRender {
       );
     }
   }
+
+  @override
+  void paintDivider(Canvas canvas, Rect rect) {}
 
   @override
   void paintChart(Canvas canvas, Rect rect) {}

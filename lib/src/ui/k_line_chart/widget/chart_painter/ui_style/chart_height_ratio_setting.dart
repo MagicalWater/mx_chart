@@ -1,5 +1,8 @@
+// ignore_for_file: hash_and_equals
+
 import 'dart:ui';
 
+import '../../../model/chart_component.dart';
 import '../../../model/chart_state/chart_state.dart';
 
 /// 圖表占用高度設定
@@ -23,11 +26,11 @@ class ChartHeightRatioSetting {
   final double? indicatorRatio;
 
   /// 下方日期占用高度
-  final double bottomTimeFixed;
+  final double timelineFixed;
 
   /// 拖拉高度比例圖表的元件高度
   /// 此高度與主圖表綁定, 若主圖表沒有顯示, 則此值無效
-  final double scrollBarFixed;
+  final double dragBarFixed;
 
   /// 主圖表的最低偏移佔比
   final double mainMinOffsetRatio;
@@ -70,6 +73,8 @@ class ChartHeightRatioSetting {
     required MainChartState mainChartState,
     required VolumeChartState volumeChartState,
     required IndicatorChartState indicatorChartState,
+    required bool canDragBarShow,
+    required bool dragBar,
   }) {
     if (!isHeightFixed(
       mainChartState: mainChartState,
@@ -82,22 +87,26 @@ class ChartHeightRatioSetting {
     final isVolumeEmpty = volumeChartState == VolumeChartState.none;
     final isIndicatorEmpty = indicatorChartState == IndicatorChartState.none;
 
-    final scrollBarH = (isMainEmpty || (isVolumeEmpty && isIndicatorEmpty))
-        ? 0.0
-        : scrollBarFixed;
+    double dragBarH;
+    if (dragBar) {
+      dragBarH = (isMainEmpty || (isVolumeEmpty && isIndicatorEmpty))
+          ? 0.0
+          : dragBarFixed;
+    } else {
+      dragBarH = 0;
+    }
+    if (dragBarH != 0 && !canDragBarShow) {
+      dragBarH = 0;
+    }
 
-    final bottomTimeH = (isMainEmpty && isVolumeEmpty && isIndicatorEmpty)
+    final timelineH = (isMainEmpty && isVolumeEmpty && isIndicatorEmpty)
         ? 0.0
-        : bottomTimeFixed;
+        : timelineFixed;
 
     final mainHeight = isMainEmpty ? 0 : mainFixed!;
     final volumeHeight = isVolumeEmpty ? 0 : volumeFixed!;
     final indicatorHeight = isIndicatorEmpty ? 0 : indicatorFixed!;
-    return mainHeight +
-        volumeHeight +
-        indicatorHeight +
-        bottomTimeH +
-        scrollBarH;
+    return mainHeight + volumeHeight + indicatorHeight + timelineH + dragBarH;
   }
 
   const ChartHeightRatioSetting({
@@ -107,8 +116,8 @@ class ChartHeightRatioSetting {
     this.volumeRatio,
     this.indicatorFixed,
     this.indicatorRatio,
-    this.scrollBarFixed = 20,
-    this.bottomTimeFixed = 25,
+    this.dragBarFixed = 20,
+    this.timelineFixed = 25,
     this.mainMinOffsetRatio = 0.2,
     this.mainMaxOffsetRatio = 0.8,
   });
@@ -121,20 +130,30 @@ class ChartHeightRatioSetting {
     required VolumeChartState volumeChartState,
     required IndicatorChartState indicatorChartState,
     required double mainChartHeightOffset,
+    required bool canDragBarShow,
+    required bool dragBar,
   }) {
     final isMainEmpty = mainChartState == MainChartState.none;
     final isVolumeEmpty = volumeChartState == VolumeChartState.none;
     final isIndicatorEmpty = indicatorChartState == IndicatorChartState.none;
 
-    final scrollBarH = (isMainEmpty || (isVolumeEmpty && isIndicatorEmpty))
-        ? 0.0
-        : scrollBarFixed;
+    double dragBarH;
+    if (dragBar) {
+      dragBarH = (isMainEmpty || (isVolumeEmpty && isIndicatorEmpty))
+          ? 0.0
+          : dragBarFixed;
+    } else {
+      dragBarH = 0;
+    }
+    if (dragBarH != 0 && !canDragBarShow) {
+      dragBarH = 0;
+    }
 
-    final bottomTimeH = (isMainEmpty && isVolumeEmpty && isIndicatorEmpty)
+    final timelineH = (isMainEmpty && isVolumeEmpty && isIndicatorEmpty)
         ? 0.0
-        : bottomTimeFixed;
+        : timelineFixed;
 
-    final remainTotalHeight = totalHeight - bottomTimeH - scrollBarH;
+    final remainTotalHeight = totalHeight - timelineH - dragBarH;
 
     double? mainHeight, volumeHeight, indicatorHeight;
     if (mainChartState == MainChartState.none) {
@@ -205,8 +224,8 @@ class ChartHeightRatioSetting {
       main: mainHeight,
       volume: volumeHeight,
       indicator: indicatorHeight,
-      bottomTime: bottomTimeH,
-      scrollBar: scrollBarH,
+      timeline: timelineH,
+      dragBar: dragBarH,
     );
   }
 }
@@ -215,35 +234,75 @@ class ChartHeightCompute<T> {
   final T main;
   final T volume;
   final T indicator;
-  final T bottomTime;
-  final T scrollBar;
+  final T timeline;
+  final T dragBar;
 
   ChartHeightCompute({
     required this.main,
     required this.volume,
     required this.indicator,
-    required this.bottomTime,
-    required this.scrollBar,
+    required this.timeline,
+    required this.dragBar,
   });
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ChartHeightCompute) {
+      return main == other.main &&
+          volume == other.volume &&
+          indicator == other.indicator &&
+          timeline == other.timeline &&
+          dragBar == other.dragBar;
+    }
+    return false;
+  }
 }
 
 extension HeightToRect on ChartHeightCompute<double> {
   /// 將高轉換為Rect
-  ChartHeightCompute<Rect> toRect(Size size) {
-    final mainRect = Rect.fromLTRB(0, 0, size.width, main);
-    final scrollBarRect = Rect.fromLTWH(0, main, size.width, scrollBar);
-    final volumeRect =
-        Rect.fromLTWH(0, scrollBarRect.bottom, size.width, volume);
-    final indicatorRect =
-        Rect.fromLTWH(0, volumeRect.bottom, size.width, indicator);
-    final bottomTimeRect =
-        Rect.fromLTWH(0, indicatorRect.bottom, size.width, bottomTime);
+  ChartHeightCompute<Rect> toRect(
+    Size size, {
+    required List<ChartComponent> componentSort,
+  }) {
+    final l = 0.0, w = size.width;
+    Rect mainR = Rect.zero,
+        dragBarR = Rect.zero,
+        volumeR = Rect.zero,
+        indicatorR = Rect.zero,
+        timelineR = Rect.zero;
+
+    double y = 0;
+    for (var element in componentSort) {
+      switch (element) {
+        case ChartComponent.main:
+          mainR = Rect.fromLTWH(l, y, w, main);
+          y = mainR.bottom;
+          break;
+        case ChartComponent.volume:
+          volumeR = Rect.fromLTWH(l, y, w, volume);
+          y = volumeR.bottom;
+          break;
+        case ChartComponent.indicator:
+          indicatorR = Rect.fromLTWH(l, y, w, indicator);
+          y = indicatorR.bottom;
+          break;
+        case ChartComponent.timeline:
+          timelineR = Rect.fromLTWH(l, y, w, timeline);
+          y = timelineR.bottom;
+          break;
+        case ChartComponent.dragBar:
+          dragBarR = Rect.fromLTWH(l, y, w, dragBar);
+          y = dragBarR.bottom;
+          break;
+      }
+    }
+
     return ChartHeightCompute<Rect>(
-      main: mainRect,
-      volume: volumeRect,
-      indicator: indicatorRect,
-      bottomTime: bottomTimeRect,
-      scrollBar: scrollBarRect,
+      main: mainR,
+      volume: volumeR,
+      indicator: indicatorR,
+      timeline: timelineR,
+      dragBar: dragBarR,
     );
   }
 }

@@ -51,24 +51,41 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           ),
           volumeChartUiStyle: const VolumeChartUiStyle(
             colorSetting: VolumeChartColorSetting(),
-            sizeSetting: VolumeChartSizeSetting(),
+            sizeSetting: VolumeChartSizeSetting(
+              bottomDivider: 1
+            ),
+            gridEnabled: false,
           ),
           macdChartUiStyle: const MACDChartUiStyle(
             colorSetting: MACDChartColorSetting(),
             sizeSetting: MACDChartSizeSetting(),
+            gridEnabled: false,
           ),
           rsiChartUiStyle: const RSIChartUiStyle(
             colorSetting: RSIChartColorSetting(),
             sizeSetting: RSIChartSizeSetting(),
+            gridEnabled: false,
           ),
           wrChartUiStyle: const WRChartUiStyle(
             colorSetting: WRChartColorSetting(),
             sizeSetting: WRChartSizeSetting(),
+            gridEnabled: false,
           ),
           kdjChartUiStyle: const KDJChartUiStyle(
             colorSetting: KDJChartColorSetting(),
             sizeSetting: KDJChartSizeSetting(),
+            gridEnabled: false,
           ),
+          dragBarBackgroundUiStyle: const DragBarBackgroundUiStyle(
+            gridEnabled: false,
+          ),
+          componentSort: const [
+            ChartComponent.main,
+            ChartComponent.timeline,
+            ChartComponent.volume,
+            ChartComponent.indicator,
+          ],
+          dragBar: false,
           priceFormatter: (price) => price.toStringAsFixed(2),
           volumeFormatter: (volume) {
             if (volume > 10000 && volume < 999999) {
@@ -85,9 +102,10 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
               print('加載更多: $value');
             }
           },
-          tooltipBuilder: (context, longPressData) {
+          tooltipBuilder: (context, longPressData, mainRect) {
             return KLineDataInfoTooltip(
               longPressData: longPressData,
+              mainRect: mainRect,
             );
           },
           // priceTagBuilder: (context, position) {

@@ -18,11 +18,19 @@ class VolumeChartColorSetting {
   /// 圖表右側的數值說明顏色
   final Color rightMaxValueText;
 
+  /// 頂部分隔線
+  final Color topDivider;
+
+  /// 底部分隔線
+  final Color bottomDivider;
+
   const VolumeChartColorSetting({
     this.background = const Color(0xff1e2129),
     this.indexTip = const Color(0xff4729AE),
     this.barUp = const Color(0xff1d5f5e),
     this.barDown = const Color(0xff82363a),
     this.rightMaxValueText = const Color(0xff60738E),
+    this.topDivider = const Color(0xff4C86CD),
+    this.bottomDivider = const Color(0xff4C86CD),
   });
 }

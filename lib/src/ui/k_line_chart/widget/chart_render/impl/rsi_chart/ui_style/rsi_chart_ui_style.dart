@@ -11,8 +11,12 @@ class RSIChartUiStyle {
   /// 尺寸相關設定
   final RSIChartSizeSetting sizeSetting;
 
+  /// 是否顯示grid
+  final bool gridEnabled;
+
   const RSIChartUiStyle({
     this.colorSetting = const RSIChartColorSetting(),
     this.sizeSetting = const RSIChartSizeSetting(),
+    this.gridEnabled = true,
   });
 }

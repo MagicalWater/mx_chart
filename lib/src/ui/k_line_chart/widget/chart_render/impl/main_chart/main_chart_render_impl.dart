@@ -37,6 +37,7 @@ class MainChartRenderImpl extends MainChartRender
     final contentHeight = rect.height - topPadding - bottomPadding;
     final contentWidth = rect.width - chartUiStyle.sizeSetting.rightSpace;
     final gridRows = chartUiStyle.sizeSetting.getRealRows(contentHeight);
+    final rectTop = rect.top;
 
     // 每一列的高度
     final rowHeight = contentHeight / gridRows;
@@ -48,8 +49,8 @@ class MainChartRenderImpl extends MainChartRender
     for (int i = 0; i <= gridRows; i++) {
       final y = rowHeight * i + topPadding;
       canvas.drawLine(
-        Offset(0, y),
-        Offset(rect.width, y),
+        Offset(0, y + rectTop),
+        Offset(rect.width, y + rectTop),
         gridPaint,
       );
     }
@@ -58,9 +59,36 @@ class MainChartRenderImpl extends MainChartRender
     for (var i = 1; i < gridColumns; i++) {
       final x = columnWidth * i;
       canvas.drawLine(
-        Offset(x, topPadding / 3),
-        Offset(x, rect.bottom),
+        Offset(x, (topPadding / 3) + rectTop),
+        Offset(x, rect.bottom + rectTop),
         gridPaint,
+      );
+    }
+  }
+
+  @override
+  void paintDivider(Canvas canvas, Rect rect) {
+    final rightSpace = dataViewer.chartUiStyle.sizeSetting.rightSpace;
+    final rectTop = rect.top;
+    final rectBottom = rect.bottom;
+
+    // 繪製頂部分隔線
+    if (sizes.topDivider != 0) {
+      gridPaint.strokeWidth = sizes.topDivider;
+      canvas.drawLine(
+        Offset(0, rectTop),
+        Offset(rect.width - rightSpace, rectTop),
+        gridPaint..color = colors.topDivider,
+      );
+    }
+
+    // 繪製底部分隔線
+    if (sizes.bottomDivider != 0) {
+      gridPaint.strokeWidth = sizes.bottomDivider;
+      canvas.drawLine(
+        Offset(0, rectBottom),
+        Offset(rect.width - rightSpace, rectBottom),
+        gridPaint..color = colors.bottomDivider,
       );
     }
   }
@@ -134,6 +162,7 @@ class MainChartRenderImpl extends MainChartRender
     final contentHeight = rect.height - topPadding - bottomPadding;
     final gridRows = chartUiStyle.sizeSetting.getRealRows(contentHeight);
     final rowHeight = contentHeight / gridRows;
+    final rectTop = rect.top;
 
     final textStyle = TextStyle(
       fontSize: sizes.rightValueText,
@@ -159,7 +188,7 @@ class MainChartRenderImpl extends MainChartRender
       final textY = positionY - textPainter.height;
       textPainter.paint(
         canvas,
-        Offset(rect.width - textPainter.width, textY),
+        Offset(rect.width - textPainter.width, textY + rectTop),
       );
     }
   }

@@ -2,12 +2,13 @@ import 'package:flutter/painting.dart';
 
 import '../../../model/model.dart';
 import '../../chart_render/chart_render.dart';
+import '../../chart_render/drag_bar_render.dart';
+import '../../chart_render/impl/drag_bar_background/drag_bar_background_render_impl.dart';
 import '../../chart_render/impl/volume_chart/volume_chart_render_impl.dart';
 import '../../chart_render/kdj_chart_render.dart';
 import '../../chart_render/macd_chart_render.dart';
 import '../../chart_render/main_chart_render.dart';
 import '../../chart_render/rsi_chart_render.dart';
-import '../../chart_render/scroll_bar_render.dart';
 import '../../chart_render/wr_chart_render.dart';
 import '../chart_painter.dart';
 
@@ -19,7 +20,7 @@ mixin ChartPainterPaintMixin on ChartPainter {
   final _rightValueLinePaint = Paint()..isAntiAlias = true;
 
   /// 下方時間軸畫筆
-  final _bottomTimePaint = Paint()..isAntiAlias = true;
+  final _timelinePaint = Paint()..isAntiAlias = true;
 
   /// 下方長按時間軸畫筆
   final _longPressTimePaint = Paint()..isAntiAlias = true;
@@ -48,12 +49,12 @@ mixin ChartPainterPaintMixin on ChartPainter {
   }
 
   /// 繪製拖拉高度比例bar的背景
-  void paintScrollBarBackground({
+  void paintDragBarBackground({
     required Canvas canvas,
     required Rect rect,
   }) {
     if (!rect.isEmpty) {
-      final ChartRender render = ScrollBarBackgroundRenderImpl(
+      final ChartRender render = DragBarBackgroundRenderImpl(
         dataViewer: this,
       );
       render.paint(canvas, rect);
@@ -96,23 +97,44 @@ mixin ChartPainterPaintMixin on ChartPainter {
   }
 
   /// 繪製長按交錯線
-  void paintLongPressCrossLine(Canvas canvas, Size size, Rect mainChartRect) {
+  void paintLongPressCrossLine(
+    Canvas canvas,
+    Size size,
+    Rect mainChartRect,
+    Rect timelineRect,
+  ) {
     // 取得長案的資料index
     final index = getLongPressDataIndex();
     if (index == null) {
       return;
     }
     final x = dataIndexToRealX(index);
-    _crossLinePaint.color = chartUiStyle.colorSetting.longPressVerticalLine;
-    _crossLinePaint.strokeWidth =
-        chartUiStyle.sizeSetting.longPressVerticalLineWidth *
-            chartGesture.scaleX;
 
-    canvas.drawLine(
-      Offset(x, 0),
-      Offset(x, size.height - chartUiStyle.heightRatioSetting.bottomTimeFixed),
-      _crossLinePaint,
-    );
+    if (!timelineRect.isEmpty) {
+      _crossLinePaint.color = chartUiStyle.colorSetting.longPressVerticalLine;
+      _crossLinePaint.strokeWidth =
+          chartUiStyle.sizeSetting.longPressVerticalLineWidth *
+              chartGesture.scaleX;
+
+      final upLineY = timelineRect.top;
+      final downLineY = timelineRect.bottom;
+
+      if (upLineY != 0) {
+        canvas.drawLine(
+          Offset(x, 0),
+          Offset(x, upLineY),
+          _crossLinePaint,
+        );
+      }
+
+      if (upLineY != 0) {
+        canvas.drawLine(
+          Offset(x, downLineY),
+          Offset(x, size.height),
+          _crossLinePaint,
+        );
+      }
+    }
 
     if (!mainChartRect.isEmpty) {
       _mainChartRender?.paintLongPressHorizontalLineAndValue(
@@ -211,19 +233,30 @@ mixin ChartPainterPaintMixin on ChartPainter {
     );
   }
 
-  /// 繪製數值軸(y軸)
-  void paintValueAxisLine(Canvas canvas, Rect rect) {
+  /// 繪製數值軸(y軸), 需要跳過時間軸
+  void paintValueAxisLine(Canvas canvas, Rect valueRect, Rect timelineRect) {
     final colors = chartUiStyle.colorSetting;
     final sizes = chartUiStyle.sizeSetting;
     _rightValueLinePaint.color = colors.rightValueLine;
     _rightValueLinePaint.strokeWidth = sizes.rightValueLine;
 
-    // 繪製上方橫格線
-    canvas.drawLine(
-      Offset(rect.left, rect.top),
-      Offset(rect.left, rect.bottom),
-      _rightValueLinePaint,
-    );
+    // 繪製上方豎線
+    if (valueRect.top != timelineRect.top) {
+      canvas.drawLine(
+        Offset(valueRect.left, valueRect.top),
+        Offset(valueRect.left, timelineRect.top),
+        _rightValueLinePaint,
+      );
+    }
+
+    // 繪製下方豎線
+    if (valueRect.bottom != timelineRect.bottom) {
+      canvas.drawLine(
+        Offset(valueRect.left, timelineRect.bottom),
+        Offset(valueRect.left, valueRect.bottom),
+        _rightValueLinePaint,
+      );
+    }
   }
 
   /// 繪製時間軸(x軸)
@@ -235,22 +268,33 @@ mixin ChartPainterPaintMixin on ChartPainter {
     final colors = chartUiStyle.colorSetting;
 
     // 繪製背景
-    _bottomTimePaint.color = colors.bottomTimeBg;
-    _bottomTimePaint.strokeWidth = sizes.bottomTimeLine;
-    canvas.drawRect(rect, _bottomTimePaint);
+    _timelinePaint.color = colors.timelineBg;
+    canvas.drawRect(rect, _timelinePaint);
 
     // 繪製上方橫格線
     canvas.drawLine(
       Offset(0, rect.top),
       Offset(rect.right, rect.top),
-      _bottomTimePaint..color = colors.bottomTimeLine,
+      _timelinePaint
+        ..color = colors.timelineTopDivider
+        ..strokeWidth = sizes.timelineTopDivider,
+    );
+
+    _timelinePaint.strokeWidth = sizes.timelineBottomDivider;
+    // 繪製下方橫格線
+    canvas.drawLine(
+      Offset(0, rect.bottom),
+      Offset(rect.right, rect.bottom),
+      _timelinePaint
+        ..color = colors.timelineBottomDivider
+        ..strokeWidth = sizes.timelineBottomDivider,
     );
 
     final contentWidth = rect.width - chartUiStyle.sizeSetting.rightSpace;
     final columnWidth = contentWidth / sizes.gridColumns;
     final timeTextStyle = TextStyle(
-      color: colors.bottomTimeText,
-      fontSize: sizes.bottomTimeText,
+      color: colors.timelineText,
+      fontSize: sizes.timelineText,
     );
 
     final lastGridIndex = sizes.gridColumns - 1;
