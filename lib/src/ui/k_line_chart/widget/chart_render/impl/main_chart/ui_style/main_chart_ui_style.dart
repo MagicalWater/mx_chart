@@ -11,8 +11,18 @@ class MainChartUiStyle {
   /// 尺寸相關設定
   final MainChartSizeSetting sizeSetting;
 
-  const  MainChartUiStyle({
+  const MainChartUiStyle({
     this.colorSetting = const MainChartColorSetting(),
     this.sizeSetting = const MainChartSizeSetting(),
   });
+
+  MainChartUiStyle copyWith({
+    MainChartColorSetting? colorSetting,
+    MainChartSizeSetting? sizeSetting,
+  }) {
+    return MainChartUiStyle(
+      colorSetting: colorSetting ?? this.colorSetting,
+      sizeSetting: sizeSetting ?? this.sizeSetting,
+    );
+  }
 }
