@@ -1,3 +1,6 @@
+## 1.1.0+2
+- MainChartUiStyle adds copyWith method
+
 ## 1.1.0+1
 - Variable renaming
   * Rename the 'scrollBar' to 'dragBar' to highlight the meaning of dragging the Bar.
