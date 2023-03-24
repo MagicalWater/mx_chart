@@ -19,4 +19,16 @@ class RSIChartUiStyle {
     this.sizeSetting = const RSIChartSizeSetting(),
     this.gridEnabled = true,
   });
+
+  RSIChartUiStyle copyWith({
+    RSIChartColorSetting? colorSetting,
+    RSIChartSizeSetting? sizeSetting,
+    bool? gridEnabled,
+  }) {
+    return RSIChartUiStyle(
+      colorSetting: colorSetting ?? this.colorSetting,
+      sizeSetting: sizeSetting ?? this.sizeSetting,
+      gridEnabled: gridEnabled ?? this.gridEnabled,
+    );
+  }
 }

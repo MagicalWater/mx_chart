@@ -1,3 +1,6 @@
+## 1.1.0+3
+- RSIChartUiStyle, WRChartUiStyle adds copyWith method
+
 ## 1.1.0+2
 - MainChartUiStyle adds copyWith method
 

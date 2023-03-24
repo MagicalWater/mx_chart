@@ -28,4 +28,20 @@ class WRChartColorSetting {
     this.topDivider = const Color(0xff4C86CD),
     this.bottomDivider = const Color(0xff4C86CD),
   });
+
+  WRChartColorSetting copyWith({
+    Color? background,
+    List<Color>? wrLine,
+    Color? rightValueText,
+    Color? topDivider,
+    Color? bottomDivider,
+  }) {
+    return WRChartColorSetting(
+      background: background ?? this.background,
+      wrLine: wrLine ?? this.wrLine,
+      rightValueText: rightValueText ?? this.rightValueText,
+      topDivider: topDivider ?? this.topDivider,
+      bottomDivider: bottomDivider ?? this.bottomDivider,
+    );
+  }
 }

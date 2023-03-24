@@ -19,4 +19,16 @@ class WRChartUiStyle {
     this.sizeSetting = const WRChartSizeSetting(),
     this.gridEnabled = true,
   });
+
+  WRChartUiStyle copyWith({
+    WRChartColorSetting? colorSetting,
+    WRChartSizeSetting? sizeSetting,
+    bool? gridEnabled,
+  }) {
+    return WRChartUiStyle(
+      colorSetting: colorSetting ?? this.colorSetting,
+      sizeSetting: sizeSetting ?? this.sizeSetting,
+      gridEnabled: gridEnabled ?? this.gridEnabled,
+    );
+  }
 }

@@ -28,4 +28,20 @@ class RSIChartColorSetting {
     this.topDivider = const Color(0xff4C86CD),
     this.bottomDivider = const Color(0xff4C86CD),
   });
+
+  RSIChartColorSetting copyWith({
+    Color? background,
+    List<Color>? rsiLine,
+    Color? rightValueText,
+    Color? topDivider,
+    Color? bottomDivider,
+  }) {
+    return RSIChartColorSetting(
+      background: background ?? this.background,
+      rsiLine: rsiLine ?? this.rsiLine,
+      rightValueText: rightValueText ?? this.rightValueText,
+      topDivider: topDivider ?? this.topDivider,
+      bottomDivider: bottomDivider ?? this.bottomDivider,
+    );
+  }
 }
