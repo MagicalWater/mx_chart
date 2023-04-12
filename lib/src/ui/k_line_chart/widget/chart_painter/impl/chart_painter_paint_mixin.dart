@@ -227,7 +227,7 @@ mixin ChartPainterPaintMixin on ChartPainter {
 
     canvas.drawLine(
       Offset(valueRect.left, valueRect.top),
-      Offset(valueRect.left, valueRect.top),
+      Offset(valueRect.left, valueRect.bottom),
       _rightValueLinePaint,
     );
 

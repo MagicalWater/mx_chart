@@ -55,7 +55,10 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           indicatorChartState: state.indicatorChartState,
           chartUiStyle: const KLineChartUiStyle(
             colorSetting: ChartColorSetting(),
-            sizeSetting: ChartSizeSetting(),
+            sizeSetting: ChartSizeSetting(
+              timelineTopDivider: 1,
+              timelineBottomDivider: 2,
+            ),
             heightRatioSetting: ChartHeightRatioSetting(
               mainFixed: 300,
               volumeFixed: 80,
@@ -64,12 +67,15 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           ),
           mainChartUiStyle: const MainChartUiStyle(
             colorSetting: MainChartColorSetting(),
-            sizeSetting: MainChartSizeSetting(),
+            sizeSetting: MainChartSizeSetting(
+              bottomDivider: 0,
+            ),
           ),
           volumeChartUiStyle: const VolumeChartUiStyle(
             colorSetting: VolumeChartColorSetting(),
             sizeSetting: VolumeChartSizeSetting(
               bottomDivider: 1,
+              topDivider: 0,
             ),
             gridEnabled: false,
           ),
@@ -124,9 +130,9 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
               mainAxisSize: MainAxisSize.min,
               children: [
                 main,
+                timeline,
                 volume,
                 indicator,
-                timeline,
               ],
             );
           },
