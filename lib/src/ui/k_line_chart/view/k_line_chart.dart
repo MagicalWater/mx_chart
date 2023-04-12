@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mx_chart/src/ui/k_line_chart/widget/chart_painter/data_viewer.dart';
 import 'package:mx_chart/src/ui/k_line_chart/widget/chart_render/drag_bar_render.dart';
 import 'package:mx_chart/src/util/date_util.dart';
 
@@ -21,20 +22,19 @@ import '../widget/chart_render/rsi_chart_render.dart';
 import '../widget/chart_render/volume_chart_render.dart';
 import '../widget/chart_render/wr_chart_render.dart';
 import '../widget/flash_point/flast_point.dart';
-import '../widget/height_rate_drag_bar.dart';
 import '../widget/k_line_data_tooltip/k_line_data_tooltip.dart';
 import '../widget/price_tag_line.dart';
 import '../widget/touch_gesture_dector/touch_gesture_dector.dart';
 
 export '../model/model.dart';
 export '../widget/chart_painter/chart_painter.dart';
+export '../widget/chart_render/drag_bar_render.dart';
 export '../widget/chart_render/kdj_chart_render.dart';
 export '../widget/chart_render/macd_chart_render.dart';
 export '../widget/chart_render/main_chart_render.dart';
 export '../widget/chart_render/rsi_chart_render.dart';
 export '../widget/chart_render/volume_chart_render.dart';
 export '../widget/chart_render/wr_chart_render.dart';
-export '../widget/chart_render/drag_bar_render.dart';
 export '../widget/k_line_data_tooltip/k_line_data_tooltip.dart';
 
 part '../model/k_line_chart_controller.dart';
@@ -52,7 +52,34 @@ typedef KLineChartTooltipBuilder = Widget Function(
 typedef PriceTagBuilder = Widget Function(
   BuildContext context,
   PricePosition position,
+  Rect mainRect,
 );
+
+typedef ChartLayoutBuilder = Widget Function(
+  BuildContext context,
+  Widget main,
+  Widget volume,
+  Widget indicator,
+  Widget timeline,
+);
+
+Widget _defaultLayoutBuilder(
+  BuildContext context,
+  Widget main,
+  Widget volume,
+  Widget indicator,
+  Widget timeline,
+) {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      main,
+      volume,
+      indicator,
+      timeline,
+    ],
+  );
+}
 
 /// k線圖表
 /// ===
@@ -149,10 +176,26 @@ class KLineChart extends StatefulWidget {
   final Widget Function(BuildContext context, bool isLongPress)? dragBarBuilder;
 
   /// 圖表組件排序
-  final List<ChartComponent> componentSort;
+  // final List<ChartComponent> componentSort;
 
   /// 拖拉bar是否顯示
   final bool dragBar;
+
+  /// 自定義插入圖表之間組件
+  /// [index] - 代表是第幾個自定義組建
+  /// 排序從0開始, 第1個位置的custom傳出的index為0, 第4個傳出的位置為1
+  /// 例如當sort為以下時,
+  /// this.componentSort = const [
+  ///     ChartComponent.main,
+  ///     ChartComponent.custom, // 0
+  ///     ChartComponent.dragBar,
+  ///     ChartComponent.volume,
+  ///     ChartComponent.custom, // 1
+  ///     ChartComponent.indicator,
+  ///     ChartComponent.timeline,
+  /// ],
+  ///
+  final ChartLayoutBuilder layoutBuilder;
 
   const KLineChart({
     Key? key,
@@ -181,13 +224,13 @@ class KLineChart extends StatefulWidget {
     this.priceTagBuilder,
     this.longPressVibrate = true,
     this.dragBarBuilder,
-    this.componentSort = const [
-      ChartComponent.main,
-      ChartComponent.dragBar,
-      ChartComponent.volume,
-      ChartComponent.indicator,
-      ChartComponent.timeline,
-    ],
+    // this.componentSort = const [
+    //   ChartComponent.volume,
+    //   ChartComponent.main,
+    //   ChartComponent.indicator,
+    //   ChartComponent.timeline,
+    // ],
+    this.layoutBuilder = _defaultLayoutBuilder,
     this.dragBar = true,
   }) : super(key: key);
 
@@ -252,18 +295,17 @@ class _KLineChartState extends State<KLineChart>
   late final Stream<LongPressData?> _longPressDataStream;
 
   /// 圖表組件 的 rect
-  final _componentRectStreamController =
-      StreamController<ChartHeightCompute<Rect>>();
+  final _mainRectStreamController = StreamController<Rect>();
 
-  /// scroll bar 的 rect 串流
-  late final Stream<ChartHeightCompute<Rect>> _componentRectStream;
+  /// main rect 串流
+  late final Stream<Rect> _mainRectStream;
 
-  /// 主圖表的高度偏移
-  double mainChartHeightOffset = 0;
+  /// 拖拉偏移
+  double dragOffset = 0;
 
   /// 高度拖移由於是取得與原始位置的偏移, 而非每次移動的距離
   /// 因此在滑動開始前要先將當前原本的偏移存起來
-  double oriMainChartHeightOffset = 0;
+  double oriDragOffset = 0;
 
   /// dragBar是否可以顯示
   late bool canDragBarShow;
@@ -271,17 +313,26 @@ class _KLineChartState extends State<KLineChart>
   /// dragBar是否處於main圖表底下
   late bool isDragBarUnderMain;
 
+  late ChartPainterValueInfo painterValueInfo;
+
+  late DataViewer dataViewer;
+
+  final mainChartKey = GlobalKey();
+  final totalKey = GlobalKey();
+
   @override
   void initState() {
-    canDragBarShow = widget.componentSort.canDragBarShow;
-    isDragBarUnderMain = widget.componentSort.isDragBarUnderMain;
+    // canDragBarShow = widget.componentSort.canDragBarShow;
+    // isDragBarUnderMain = widget.componentSort.isDragBarUnderMain;
+    canDragBarShow = false;
+    isDragBarUnderMain = false;
 
     realTimePrice = widget.datas.lastOrNull?.close;
 
     _pricePositionStream = _pricePositionStreamController.stream.distinct();
     _longPressDataStream = _longPressDataStreamController.stream.distinct();
-    _componentRectStream =
-        _componentRectStreamController.stream.asBroadcastStream().distinct();
+    _mainRectStream =
+        _mainRectStreamController.stream.asBroadcastStream().distinct();
 
     // 慣性滑動控制器
     final controller = AnimationController(
@@ -297,18 +348,67 @@ class _KLineChartState extends State<KLineChart>
       onLoadMore: widget.onLoadMore,
     );
 
+    painterValueInfo = ChartPainterValueInfo(
+      chartGesture: chartGesture,
+      onDrawInfo: (info) {
+        chartGesture.setDrawInfo(info);
+        if (info.maxScrollX == 0) {
+          // 資料未滿一頁
+          if (!isDataLessOnePageCallBack) {
+            isDataLessOnePageCallBack = true;
+            widget.onLoadMore?.call(false);
+          }
+        }
+      },
+      onLongPressData: (data) {
+        if (data != null && longPressIndex != data.index) {
+          // 發出震動
+          _vibrate();
+        }
+        longPressIndex = data?.index;
+        _longPressDataStreamController.add(data);
+      },
+    );
+
+    dataViewer = DataViewer(
+      chartUiStyle: widget.chartUiStyle,
+      mainChartUiStyle: widget.mainChartUiStyle,
+      volumeChartUiStyle: widget.volumeChartUiStyle,
+      macdChartUiStyle: widget.macdChartUiStyle,
+      rsiChartUiStyle: widget.rsiChartUiStyle,
+      wrChartUiStyle: widget.wrChartUiStyle,
+      kdjChartUiStyle: widget.kdjChartUiStyle,
+      dragBarUiStyle: widget.dragBarBackgroundUiStyle,
+      mainChartState: widget.mainChartState,
+      mainChartIndicatorState: widget.mainChartIndicatorState,
+      volumeChartState: widget.volumeChartState,
+      indicatorChartState: widget.indicatorChartState,
+      indicatorSetting: widget.indicatorSetting,
+      priceFormatter: widget.priceFormatter,
+      volumeFormatter: widget.volumeFormatter,
+      xAxisDateTimeFormatter: widget.xAxisDateTimeFormatter,
+      valueInfo: painterValueInfo,
+    );
+
     oldDataCount = widget.datas.length;
     isDataLessOnePageCallBack = false;
 
     widget.controller?._bind = this;
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _syncMainRect();
+    });
 
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant KLineChart oldWidget) {
-    canDragBarShow = widget.componentSort.canDragBarShow;
-    isDragBarUnderMain = widget.componentSort.isDragBarUnderMain;
+    // canDragBarShow = widget.componentSort.canDragBarShow;
+    // isDragBarUnderMain = widget.componentSort.isDragBarUnderMain;
+    canDragBarShow = false;
+    isDragBarUnderMain = false;
+    dataViewer.updateWithWidget(widget);
 
     realTimePrice = widget.datas.lastOrNull?.close;
 
@@ -329,8 +429,7 @@ class _KLineChartState extends State<KLineChart>
     chartGesture.dispose();
     _pricePositionStreamController.close();
     _longPressDataStreamController.close();
-    _componentRectStreamController.close();
-    _componentRectStreamController.close();
+    // _componentRectStreamController.close();
     widget.controller?._bind = null;
     super.dispose();
   }
@@ -339,13 +438,13 @@ class _KLineChartState extends State<KLineChart>
   Widget build(BuildContext context) {
     final heightSetting = widget.chartUiStyle.heightRatioSetting;
     chartHeight = heightSetting.getFixedHeight(
-          mainChartState: widget.mainChartState,
-          volumeChartState: widget.volumeChartState,
-          indicatorChartState: widget.indicatorChartState,
-          canDragBarShow: canDragBarShow,
-          dragBar: widget.dragBar,
-        ) ??
-        double.infinity;
+      mainChartState: widget.mainChartState,
+      volumeChartState: widget.volumeChartState,
+      indicatorChartState: widget.indicatorChartState,
+      canDragBarShow: canDragBarShow,
+      dragBar: widget.dragBar,
+    );
+
     return TouchGestureDetector(
       onTouchStart: chartGesture.onTouchDown,
       onTouchUpdate: chartGesture.onTouchUpdate,
@@ -371,72 +470,70 @@ class _KLineChartState extends State<KLineChart>
       },
       child: Stack(
         children: <Widget>[
-          RepaintBoundary(
-            child: CustomPaint(
-              size: Size(double.infinity, chartHeight!),
-              painter: ChartPainterImpl(
-                datas: widget.datas,
-                chartGesture: chartGesture,
-                chartUiStyle: widget.chartUiStyle,
-                mainChartState: widget.mainChartState,
-                mainChartIndicatorState: widget.mainChartIndicatorState,
-                volumeChartState: widget.volumeChartState,
-                indicatorChartState: widget.indicatorChartState,
-                mainChartUiStyle: widget.mainChartUiStyle,
-                volumeChartUiStyle: widget.volumeChartUiStyle,
-                macdChartUiStyle: widget.macdChartUiStyle,
-                rsiChartUiStyle: widget.rsiChartUiStyle,
-                wrChartUiStyle: widget.wrChartUiStyle,
-                kdjChartUiStyle: widget.kdjChartUiStyle,
-                dragBarUiStyle: widget.dragBarBackgroundUiStyle,
-                indicatorSetting: widget.indicatorSetting,
-                priceFormatter: widget.priceFormatter,
-                volumeFormatter: widget.volumeFormatter,
-                xAxisDateTimeFormatter: widget.xAxisDateTimeFormatter,
-                mainChartHeightOffset: mainChartHeightOffset,
-                componentSort: widget.componentSort,
-                dragBar: widget.dragBar,
-                canDragBarShow: canDragBarShow,
-                onDrawInfo: (info) {
-                  chartGesture.setDrawInfo(info);
-                  if (info.maxScrollX == 0) {
-                    // 資料未滿一頁
-                    if (!isDataLessOnePageCallBack) {
-                      isDataLessOnePageCallBack = true;
-                      widget.onLoadMore?.call(false);
-                    }
-                  }
-                },
-                onLongPressData: (data) {
-                  if (data != null && longPressIndex != data.index) {
-                    // 發出震動
-                    _vibrate();
-                  }
-                  longPressIndex = data?.index;
-                  _longPressDataStreamController.add(data);
-                },
-                pricePositionGetter: (rightSpace, isNewerDisplay, valueToY) {
-                  final position = PricePosition(
-                    canvasWidth: chartGesture.drawContentInfo!.canvasWidth,
-                    rightSpace: rightSpace,
-                    valueToY: valueToY,
-                    lastPrice: realTimePrice,
-                    isNewerDisplay: isNewerDisplay,
-                  );
-                  _pricePositionStreamController.add(position);
-                },
-                onRect: (compute) {
-                  _componentRectStreamController.add(compute);
-                },
+          LayoutBuilder(builder: (context, constraints) {
+            // 初始化數值
+            painterValueInfo.initDataValue(
+              canvasWidth: constraints.maxWidth,
+              sizeSetting: widget.chartUiStyle.sizeSetting,
+              datas: widget.datas,
+            );
+
+            chartHeight ??= constraints.maxHeight;
+
+            // 不可無限高度
+            assert(chartHeight != double.infinity);
+
+            // 取得每個原件的高度
+            final heightCompute = heightSetting.computeChartHeight(
+              totalHeight: chartHeight!,
+              mainChartState: dataViewer.mainChartState,
+              volumeChartState: dataViewer.volumeChartState,
+              indicatorChartState: dataViewer.indicatorChartState,
+              dragOffset: dragOffset,
+              canDragBarShow: canDragBarShow,
+              dragBar: widget.dragBar,
+            );
+
+            final mainWidget = _mainChart(
+              context,
+              constraints.maxWidth,
+              heightCompute.main,
+            );
+
+            final volumeWidget = _volumeChart(
+              context,
+              constraints.maxWidth,
+              heightCompute.volume,
+            );
+
+            final indicatorWidget = _indicatorChart(
+              context,
+              constraints.maxWidth,
+              heightCompute.indicator,
+            );
+
+            final timelineWidget = _timelineAxis(
+              context,
+              constraints.maxWidth,
+              heightCompute.timeline,
+            );
+            return KeyedSubtree(
+              key: totalKey,
+              child: widget.layoutBuilder(
+                context,
+                mainWidget,
+                volumeWidget,
+                indicatorWidget,
+                timelineWidget,
               ),
-            ),
-          ),
+            );
+          }),
 
           // 價格標示(包含閃亮點)
           _priceTagBuilder(),
 
           // 長按時顯示的詳細資訊彈窗
-          _tooltip(),
+          _tooltip(context),
 
           // 高度比例拖曳bar
           _heightRatioDragBar(),
@@ -445,12 +542,98 @@ class _KLineChartState extends State<KLineChart>
     );
   }
 
+  void _syncMainRect() {
+    final mainRender = mainChartKey.currentContext?.findRenderObject();
+    final totalRender = totalKey.currentContext?.findRenderObject();
+    if (mainRender == null || totalRender == null) {
+      return;
+    }
+    final translation = mainRender.getTransformTo(totalRender).getTranslation();
+    final offset = Offset(translation.x, translation.y);
+    final bounds = mainRender.paintBounds.shift(offset);
+    _mainRectStreamController.add(bounds);
+  }
+
+  Widget _mainChart(
+    BuildContext context,
+    double width,
+    double height,
+  ) {
+    return NotificationListener<SizeChangedLayoutNotification>(
+      onNotification: (notification) {
+        _syncMainRect();
+        return true;
+      },
+      child: SizeChangedLayoutNotifier(
+        key: mainChartKey,
+        child: RepaintBoundary(
+          child: CustomPaint(
+            size: Size(width, height),
+            painter: MainPainterImpl(
+              dataViewer: dataViewer,
+              pricePositionGetter: (rightSpace, isNewerDisplay, valueToY) {
+                final position = PricePosition(
+                  canvasWidth: chartGesture.drawContentInfo!.canvasWidth,
+                  rightSpace: rightSpace,
+                  valueToY: valueToY,
+                  lastPrice: realTimePrice,
+                  isNewerDisplay: isNewerDisplay,
+                );
+                _pricePositionStreamController.add(position);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _volumeChart(
+    BuildContext context,
+    double width,
+    double height,
+  ) {
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size(width, height),
+        painter: VolumePainterImpl(dataViewer: dataViewer),
+      ),
+    );
+  }
+
+  Widget _indicatorChart(
+    BuildContext context,
+    double width,
+    double height,
+  ) {
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size(width, height),
+        painter: IndicatorPainterImpl(dataViewer: dataViewer),
+      ),
+    );
+  }
+
+  /// 時間軸
+  Widget _timelineAxis(
+    BuildContext context,
+    double width,
+    double height,
+  ) {
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size(width, height),
+        painter: TimelinePainterImpl(dataViewer: dataViewer),
+      ),
+    );
+  }
+
   /// 長按顯示的tooltip
-  Widget _tooltip() {
-    return StreamBuilder<ChartHeightCompute<Rect>>(
-      stream: _componentRectStream,
+  Widget _tooltip(BuildContext context) {
+    return StreamBuilder<Rect>(
+      stream: _mainRectStream,
       builder: (context, snapshot) {
-        final mainRect = snapshot.hasData ? snapshot.data!.main : null;
+        final mainRect = snapshot.hasData ? snapshot.data : null;
         return StreamBuilder<LongPressData?>(
           stream: _longPressDataStream,
           builder: (context, snapshot) {
@@ -474,76 +657,86 @@ class _KLineChartState extends State<KLineChart>
 
   /// 高度分配拖拉bar
   Widget _heightRatioDragBar() {
-    return StreamBuilder<ChartHeightCompute<Rect>>(
-      stream: _componentRectStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final rect = snapshot.data!.dragBar;
-
-          if (rect.isEmpty) {
-            return const SizedBox.shrink();
-          }
-
-          // 最外層需要包裹在一樣的高度下, 否則實際點擊區塊會出問題
-          return SizedBox(
-            height: chartHeight,
-            child: HeightRatioDragBar(
-              rect: rect,
-              chartUiStyle: widget.chartUiStyle,
-              onDragStart: () {
-                oriMainChartHeightOffset = mainChartHeightOffset;
-              },
-              onDragUpdate: (offset) {
-                if (isDragBarUnderMain) {
-                  mainChartHeightOffset = oriMainChartHeightOffset + offset;
-                } else {
-                  mainChartHeightOffset = oriMainChartHeightOffset - offset;
-                }
-                setState(() {});
-              },
-              builder: widget.dragBarBuilder,
-              enable: widget.volumeChartState != VolumeChartState.none ||
-                  widget.indicatorChartState != IndicatorChartState.none,
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
-    );
+    return const SizedBox.shrink();
+    // return StreamBuilder<ChartHeightCompute<Rect>>(
+    //   stream: _componentRectStream,
+    //   builder: (context, snapshot) {
+    //     if (snapshot.hasData) {
+    //       final rect = snapshot.data!.dragBar;
+    //
+    //       if (rect.isEmpty) {
+    //         return const SizedBox.shrink();
+    //       }
+    //
+    //       // 最外層需要包裹在一樣的高度下, 否則實際點擊區塊會出問題
+    //       return SizedBox(
+    //         height: chartHeight,
+    //         child: HeightRatioDragBar(
+    //           rect: rect,
+    //           chartUiStyle: widget.chartUiStyle,
+    //           onDragStart: () {
+    //             oriMainChartHeightOffset = mainChartHeightOffset;
+    //           },
+    //           onDragUpdate: (offset) {
+    //             if (isDragBarUnderMain) {
+    //               mainChartHeightOffset = oriMainChartHeightOffset + offset;
+    //             } else {
+    //               mainChartHeightOffset = oriMainChartHeightOffset - offset;
+    //             }
+    //             setState(() {});
+    //           },
+    //           builder: widget.dragBarBuilder,
+    //           enable: widget.volumeChartState != VolumeChartState.none ||
+    //               widget.indicatorChartState != IndicatorChartState.none,
+    //         ),
+    //       );
+    //     }
+    //     return const SizedBox.shrink();
+    //   },
+    // );
   }
 
   /// 價格標示構建
   Widget _priceTagBuilder() {
-    return StreamBuilder<PricePosition>(
-      stream: _pricePositionStream,
+    return StreamBuilder<Rect>(
+      stream: _mainRectStream,
       builder: (context, snapshot) {
-        final position = snapshot.data;
-        if (widget.mainChartState == MainChartState.none ||
-            realTimePrice == null ||
-            position == null) {
-          return const SizedBox.shrink();
-        }
+        final mainRect = snapshot.hasData ? snapshot.data : null;
+        return StreamBuilder<PricePosition>(
+          stream: _pricePositionStream,
+          builder: (context, snapshot) {
+            final position = snapshot.data;
+            if (mainRect == null ||
+                mainRect.isEmpty ||
+                widget.mainChartState.isNone ||
+                realTimePrice == null ||
+                position == null) {
+              return const SizedBox.shrink();
+            }
 
-        // 最新價格的標示
-        final realTimePriceTag =
-            widget.priceTagBuilder?.call(context, position) ??
-                Stack(
-                  children: [
-                    _flashPoint(context, position),
-                    _realTimePriceTag(context, position),
-                  ],
-                );
+            // 最新價格的標示
+            final realTimePriceTag =
+                widget.priceTagBuilder?.call(context, position, mainRect) ??
+                    Stack(
+                      children: [
+                        _flashPoint(context, position, mainRect),
+                        _realTimePriceTag(context, position, mainRect),
+                      ],
+                    );
 
-        return SizedBox(
-          height: chartHeight,
-          child: realTimePriceTag,
+            return SizedBox(height: chartHeight, child: realTimePriceTag);
+          },
         );
       },
     );
   }
 
   /// 閃耀動畫
-  Widget _flashPoint(BuildContext context, PricePosition position) {
+  Widget _flashPoint(
+    BuildContext context,
+    PricePosition position,
+    Rect mainRect,
+  ) {
     final circleSize = widget.mainChartUiStyle.sizeSetting.realTimePriceFlash;
     final pointSize = widget.mainChartUiStyle.sizeSetting.realTimePriceCircle;
     final flashColor =
@@ -557,7 +750,7 @@ class _KLineChartState extends State<KLineChart>
 
     return PositionLayout(
       xFixed: position.canvasWidth - position.rightSpace,
-      yFixed: position.valueToY(realTimePrice!),
+      yFixed: position.valueToY(realTimePrice!) + mainRect.top,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -583,7 +776,11 @@ class _KLineChartState extends State<KLineChart>
   }
 
   /// 預設的最新價格線標示
-  Widget _realTimePriceTag(BuildContext context, PricePosition position) {
+  Widget _realTimePriceTag(
+    BuildContext context,
+    PricePosition position,
+    Rect mainRect,
+  ) {
     final gridColumns = widget.chartUiStyle.sizeSetting.gridColumns;
     return PriceTagLine(
       gridColumns: gridColumns,
@@ -592,6 +789,7 @@ class _KLineChartState extends State<KLineChart>
       uiStyle: widget.mainChartUiStyle,
       priceFormatter: widget.priceFormatter,
       globalTagOffsetX: widget.chartUiStyle.sizeSetting.rightSpace,
+      rectTop: mainRect.top,
       onTapGlobalTag: () async {
         _vibrate();
         scrollToRight(animated: true);
@@ -640,36 +838,36 @@ class _KLineChartState extends State<KLineChart>
   }
 }
 
-extension ChartComponentSort on List<ChartComponent> {
-  bool get canDragBarShow {
-    final index = indexOf(ChartComponent.dragBar);
-    if (index != -1) {
-      final prevIndex = index - 1;
-      final nextIndex = index + 1;
-      final prevE = prevIndex >= 0 ? this[prevIndex] : null;
-      final nextE = nextIndex < length ? this[nextIndex] : null;
-      final isPrevMain = prevE == ChartComponent.main;
-      final isNextMain = nextE == ChartComponent.main;
-
-      final isPrevSub =
-          prevE == ChartComponent.volume || prevE == ChartComponent.indicator;
-      final isNextSub =
-          nextE == ChartComponent.volume || nextE == ChartComponent.indicator;
-
-      return (isPrevMain && isNextSub) || (isPrevSub && isNextMain);
-    }
-    return false;
-  }
-
-  bool get isDragBarUnderMain {
-    final index = indexOf(ChartComponent.dragBar);
-    if (index != -1) {
-      final prevIndex = index - 1;
-      final prevE = prevIndex >= 0 ? this[prevIndex] : null;
-      final isPrevMain = prevE == ChartComponent.main;
-
-      return isPrevMain;
-    }
-    return false;
-  }
-}
+// extension ChartComponentSort on List<ChartComponent> {
+//   bool get canDragBarShow {
+//     final index = indexOf(ChartComponent.dragBar);
+//     if (index != -1) {
+//       final prevIndex = index - 1;
+//       final nextIndex = index + 1;
+//       final prevE = prevIndex >= 0 ? this[prevIndex] : null;
+//       final nextE = nextIndex < length ? this[nextIndex] : null;
+//       final isPrevMain = prevE == ChartComponent.main;
+//       final isNextMain = nextE == ChartComponent.main;
+//
+//       final isPrevSub =
+//           prevE == ChartComponent.volume || prevE == ChartComponent.indicator;
+//       final isNextSub =
+//           nextE == ChartComponent.volume || nextE == ChartComponent.indicator;
+//
+//       return (isPrevMain && isNextSub) || (isPrevSub && isNextMain);
+//     }
+//     return false;
+//   }
+//
+//   bool get isDragBarUnderMain {
+//     final index = indexOf(ChartComponent.dragBar);
+//     if (index != -1) {
+//       final prevIndex = index - 1;
+//       final prevE = prevIndex >= 0 ? this[prevIndex] : null;
+//       final isPrevMain = prevE == ChartComponent.main;
+//
+//       return isPrevMain;
+//     }
+//     return false;
+//   }
+// }

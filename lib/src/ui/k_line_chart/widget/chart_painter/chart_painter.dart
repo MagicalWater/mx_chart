@@ -4,20 +4,16 @@ import '../../chart_gesture/chart_gesture.dart';
 import '../../model/model.dart';
 import 'data_viewer.dart';
 
-export 'impl/chart_painter_impl.dart';
+export 'split/split.dart';
 
-abstract class ChartPainter extends CustomPainter implements DataViewer {
-  final ChartGesture chartGesture;
+abstract class ChartPainter extends CustomPainter {
+  ChartPainterValueInfo get valueInfo => dataViewer.valueInfo;
 
-  /// 當取得最大滾動距離時回調
-  final ValueChanged<DrawContentInfo>? onDrawInfo;
+  final DataViewer dataViewer;
 
-  /// 當取得長按對應的資料時回調
-  final ValueChanged<LongPressData?>? onLongPressData;
+  ChartGesture get chartGesture => valueInfo.chartGesture;
 
   ChartPainter({
-    required this.chartGesture,
-    required this.onDrawInfo,
-    required this.onLongPressData,
+    required this.dataViewer,
   });
 }

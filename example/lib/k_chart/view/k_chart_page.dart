@@ -24,6 +24,23 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
 
   Widget _view() {
     Widget _content(KChartState state) {
+      const heightSetting = ChartHeightRatioSetting(
+        // mainFixed: 100,
+        mainFixed: 60,
+        volumeRatio: 0.8,
+        indicatorRatio: 0.2,
+        timelineFixed: 0
+      );
+      final compute = heightSetting.computeChartHeight(
+        totalHeight: 100,
+        mainChartState: MainChartState.kLine,
+        volumeChartState: VolumeChartState.volume,
+        indicatorChartState: IndicatorChartState.kdj,
+        dragOffset: 0,
+        canDragBarShow: false,
+        dragBar: false,
+      );
+      print('高度: ${compute.main} => ${compute.volume} => ${compute.indicator}');
       if (state.isLoading) {
         return Container(
           height: 200,
@@ -42,7 +59,7 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
             heightRatioSetting: ChartHeightRatioSetting(
               mainFixed: 300,
               volumeFixed: 80,
-              indicatorFixed: 80,
+              indicatorFixed: 80
             ),
           ),
           mainChartUiStyle: const MainChartUiStyle(
@@ -52,7 +69,7 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           volumeChartUiStyle: const VolumeChartUiStyle(
             colorSetting: VolumeChartColorSetting(),
             sizeSetting: VolumeChartSizeSetting(
-              bottomDivider: 1
+              bottomDivider: 1,
             ),
             gridEnabled: false,
           ),
@@ -79,12 +96,6 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           dragBarBackgroundUiStyle: const DragBarBackgroundUiStyle(
             gridEnabled: false,
           ),
-          componentSort: const [
-            ChartComponent.main,
-            ChartComponent.timeline,
-            ChartComponent.volume,
-            ChartComponent.indicator,
-          ],
           dragBar: false,
           priceFormatter: (price) => price.toStringAsFixed(2),
           volumeFormatter: (volume) {
@@ -106,6 +117,17 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
             return KLineDataInfoTooltip(
               longPressData: longPressData,
               mainRect: mainRect,
+            );
+          },
+          layoutBuilder: (context, main, volume, indicator, timeline) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                main,
+                volume,
+                indicator,
+                timeline,
+              ],
             );
           },
           // priceTagBuilder: (context, position) {

@@ -4,4 +4,4 @@ export 'draw_content_info.dart';
 export 'long_press_data.dart';
 export 'price_position.dart';
 export 'indicator_setting/indicator_setting.dart';
-export 'chart_component.dart';
+export 'chart_painter_value_info.dart';

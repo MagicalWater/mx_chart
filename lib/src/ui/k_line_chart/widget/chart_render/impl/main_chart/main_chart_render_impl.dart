@@ -96,7 +96,7 @@ class MainChartRenderImpl extends MainChartRender
   /// 繪製上方的數值說明文字
   @override
   void paintTopValueText(Canvas canvas, Rect rect) {
-    final displayData = dataViewer.getLongPressData() ?? dataViewer.datas.last;
+    final displayData = dataViewer.longPressData ?? dataViewer.datas.last;
     final maData = displayData.indicatorData.ma?.ma;
     final spanTexts = <TextSpan>[];
 
@@ -339,7 +339,7 @@ class MainChartRenderImpl extends MainChartRender
   @override
   void paintLongPressHorizontalLineAndValue(Canvas canvas, Rect rect) {
     var longPressY = dataViewer.longPressY;
-    final dataIndex = dataViewer.getLongPressDataIndex();
+    final dataIndex = dataViewer.longPressDataIndex;
     if (longPressY == null || dataIndex == null) {
       return;
     }

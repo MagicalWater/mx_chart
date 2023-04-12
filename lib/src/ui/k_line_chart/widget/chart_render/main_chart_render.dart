@@ -24,7 +24,6 @@ abstract class MainChartRender extends ChartRender
     paintBackground(canvas, rect);
     paintGrid(canvas, rect);
     paintDivider(canvas, rect);
-
     // 可以繪製圖表資料的區塊
     final chartRect = Rect.fromLTRB(
       rect.left,
@@ -53,7 +52,6 @@ abstract class MainChartRender extends ChartRender
     paintMaxMinValue(canvas, rect);
     canvas.restore();
     paintRealTimeLine(canvas, rect);
-    paintLongPressHorizontalLineAndValue(canvas, rect);
   }
 
   /// 繪製實時線

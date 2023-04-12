@@ -1,8 +1,5 @@
 // ignore_for_file: hash_and_equals
 
-import 'dart:ui';
-
-import '../../../model/chart_component.dart';
 import '../../../model/chart_state/chart_state.dart';
 
 /// 圖表占用高度設定
@@ -32,21 +29,11 @@ class ChartHeightRatioSetting {
   /// 此高度與主圖表綁定, 若主圖表沒有顯示, 則此值無效
   final double dragBarFixed;
 
-  /// 主圖表的最低偏移佔比
-  final double mainMinOffsetRatio;
+  /// 拖拉最低偏移佔比
+  final double minDragRadio;
 
-  /// 主圖表的最高偏移佔比
-  final double mainMaxOffsetRatio;
-
-  /// 是否有設定主圖表高度
-  bool get _isMainSetting => mainFixed != null || mainRatio != null;
-
-  /// 是否有設定買賣圖表高度
-  bool get _isVolumeSetting => volumeFixed != null || volumeRatio != null;
-
-  /// 是否有設定技術圖表高度
-  bool get _isIndicatorSetting =>
-      indicatorFixed != null || indicatorRatio != null;
+  /// 拖拉最高偏移佔比
+  final double maxDragRadio;
 
   /// 高度是否全為固定值
   bool isHeightFixed({
@@ -118,9 +105,9 @@ class ChartHeightRatioSetting {
     this.indicatorRatio,
     this.dragBarFixed = 20,
     this.timelineFixed = 25,
-    this.mainMinOffsetRatio = 0.2,
-    this.mainMaxOffsetRatio = 0.8,
-  });
+    this.minDragRadio = 0.2,
+    this.maxDragRadio = 0.8,
+  }) : assert((mainFixed != null || mainRatio != null));
 
   /// 分配各個主題占用高度
   /// [mainChartOffsetY] - 主圖表的高度偏移增減
@@ -129,7 +116,7 @@ class ChartHeightRatioSetting {
     required MainChartState mainChartState,
     required VolumeChartState volumeChartState,
     required IndicatorChartState indicatorChartState,
-    required double mainChartHeightOffset,
+    required double dragOffset,
     required bool canDragBarShow,
     required bool dragBar,
   }) {
@@ -153,46 +140,57 @@ class ChartHeightRatioSetting {
         ? 0.0
         : timelineFixed;
 
-    final remainTotalHeight = totalHeight - timelineH - dragBarH;
+    final contentTotalHeight = totalHeight - timelineH - dragBarH;
+    var remainTotalHeight = contentTotalHeight;
 
     double? mainHeight, volumeHeight, indicatorHeight;
-    if (mainChartState == MainChartState.none) {
+
+    final isMainNeedRadio = !isMainEmpty && mainFixed == null;
+    final isVolumeNeedRadio = !isVolumeEmpty && volumeFixed == null;
+    final isIndicatorNeedRadio = !isIndicatorEmpty && indicatorFixed == null;
+
+    if (isMainEmpty) {
       mainHeight = 0;
-    } else if (_isMainSetting) {
-      mainHeight =
-          mainFixed ?? (mainRatio! * remainTotalHeight).floorToDouble();
+    } else if (!isMainNeedRadio) {
+      remainTotalHeight -= mainFixed!;
+      mainHeight = mainFixed!;
     }
 
     if (isVolumeEmpty) {
       volumeHeight = 0;
-    } else if (_isVolumeSetting) {
-      volumeHeight =
-          volumeFixed ?? (volumeRatio! * remainTotalHeight).floorToDouble();
+    } else if (!isVolumeNeedRadio) {
+      remainTotalHeight -= volumeFixed!.toDouble();
+      volumeHeight = volumeFixed!;
     }
 
     if (isIndicatorEmpty) {
       indicatorHeight = 0;
-    } else if (_isIndicatorSetting) {
-      indicatorHeight = indicatorFixed ??
-          (indicatorRatio! * remainTotalHeight).floorToDouble();
+    } else if (!isIndicatorNeedRadio) {
+      remainTotalHeight -= indicatorFixed!.toDouble();
+      indicatorHeight = indicatorFixed!;
     }
 
-    mainHeight ??=
-        remainTotalHeight - (volumeHeight ?? 0) - (indicatorHeight ?? 0);
-    volumeHeight ??= remainTotalHeight - mainHeight - (indicatorHeight ?? 0);
-    indicatorHeight ??= remainTotalHeight - mainHeight - volumeHeight;
+    if (isMainNeedRadio) {
+      mainHeight = remainTotalHeight * (mainRatio ?? 0);
+    }
+    if (isVolumeNeedRadio) {
+      volumeHeight = remainTotalHeight * (volumeRatio ?? 0);
+    }
+    if (isIndicatorNeedRadio) {
+      indicatorHeight = remainTotalHeight * (indicatorRatio ?? 0);
+    }
 
     // 原本的main高度, 等下要與偏移後的高度做比對
-    final oriMain = mainHeight;
+    final oriMain = mainHeight!;
 
     // 最終main的偏移高度差距
     final double lastMainOffsetY;
 
     if (mainHeight != 0 && (volumeHeight != 0 || indicatorHeight != 0)) {
-      mainHeight += mainChartHeightOffset;
+      mainHeight = mainHeight + dragOffset;
 
-      final maxLimit = remainTotalHeight * mainMaxOffsetRatio;
-      final minLimit = remainTotalHeight * mainMinOffsetRatio;
+      final maxLimit = contentTotalHeight * maxDragRadio;
+      final minLimit = contentTotalHeight * minDragRadio;
 
       if (mainHeight > maxLimit) {
         mainHeight = maxLimit;
@@ -209,12 +207,12 @@ class ChartHeightRatioSetting {
     if (lastMainOffsetY != 0) {
       if (volumeHeight != 0 && indicatorHeight != 0) {
         // 需要與技術線平均分攤
-        volumeHeight -= (lastMainOffsetY / 2);
-        indicatorHeight -= (lastMainOffsetY / 2);
+        volumeHeight = volumeHeight! - (lastMainOffsetY / 2);
+        indicatorHeight = indicatorHeight! - (lastMainOffsetY / 2);
       } else if (volumeHeight != 0) {
-        volumeHeight -= lastMainOffsetY;
+        volumeHeight = volumeHeight! - lastMainOffsetY;
       } else if (indicatorHeight != 0) {
-        indicatorHeight -= lastMainOffsetY;
+        indicatorHeight = indicatorHeight! - lastMainOffsetY;
       }
     }
 
@@ -222,8 +220,8 @@ class ChartHeightRatioSetting {
 
     return ChartHeightCompute<double>(
       main: mainHeight,
-      volume: volumeHeight,
-      indicator: indicatorHeight,
+      volume: volumeHeight!,
+      indicator: indicatorHeight!,
       timeline: timelineH,
       dragBar: dragBarH,
     );
@@ -255,54 +253,5 @@ class ChartHeightCompute<T> {
           dragBar == other.dragBar;
     }
     return false;
-  }
-}
-
-extension HeightToRect on ChartHeightCompute<double> {
-  /// 將高轉換為Rect
-  ChartHeightCompute<Rect> toRect(
-    Size size, {
-    required List<ChartComponent> componentSort,
-  }) {
-    final l = 0.0, w = size.width;
-    Rect mainR = Rect.zero,
-        dragBarR = Rect.zero,
-        volumeR = Rect.zero,
-        indicatorR = Rect.zero,
-        timelineR = Rect.zero;
-
-    double y = 0;
-    for (var element in componentSort) {
-      switch (element) {
-        case ChartComponent.main:
-          mainR = Rect.fromLTWH(l, y, w, main);
-          y = mainR.bottom;
-          break;
-        case ChartComponent.volume:
-          volumeR = Rect.fromLTWH(l, y, w, volume);
-          y = volumeR.bottom;
-          break;
-        case ChartComponent.indicator:
-          indicatorR = Rect.fromLTWH(l, y, w, indicator);
-          y = indicatorR.bottom;
-          break;
-        case ChartComponent.timeline:
-          timelineR = Rect.fromLTWH(l, y, w, timeline);
-          y = timelineR.bottom;
-          break;
-        case ChartComponent.dragBar:
-          dragBarR = Rect.fromLTWH(l, y, w, dragBar);
-          y = dragBarR.bottom;
-          break;
-      }
-    }
-
-    return ChartHeightCompute<Rect>(
-      main: mainR,
-      volume: volumeR,
-      indicator: indicatorR,
-      timeline: timelineR,
-      dragBar: dragBarR,
-    );
   }
 }

@@ -1,3 +1,8 @@
+## 2.0.0+1
+- Remove the componentSort parameter, use layoutBuilder for custom component sorting.
+
+- Separate all components, easy to adjust the position and insert components.
+
 ## 1.1.0+3
 - RSIChartUiStyle, WRChartUiStyle adds copyWith method
 

@@ -1,4 +1,4 @@
-import '../chart_painter.dart';
+import '../split/split.dart';
 
 export 'chart_color_setting.dart';
 export 'chart_height_ratio_setting.dart';

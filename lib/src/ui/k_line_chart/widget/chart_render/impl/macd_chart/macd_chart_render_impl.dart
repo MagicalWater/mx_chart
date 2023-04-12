@@ -116,7 +116,7 @@ class MACDChartRenderImpl extends MACDChartRender
 
   @override
   void paintTopValueText(Canvas canvas, Rect rect) {
-    final displayData = dataViewer.getLongPressData() ?? dataViewer.datas.last;
+    final displayData = dataViewer.longPressData ?? dataViewer.datas.last;
     final macdData = displayData.indicatorData.macd;
 
     if (macdData == null) {

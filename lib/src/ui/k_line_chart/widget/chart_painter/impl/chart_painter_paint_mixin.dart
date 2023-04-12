@@ -34,13 +34,13 @@ mixin ChartPainterPaintMixin on ChartPainter {
     required Rect rect,
     PricePositionGetter? pricePositionGetter,
   }) {
-    switch (mainChartState) {
+    switch (dataViewer.mainChartState) {
       case MainChartState.none:
         _mainChartRender = null;
         break;
       default:
         _mainChartRender ??= MainChartRenderImpl(
-          dataViewer: this,
+          dataViewer: dataViewer,
           pricePositionGetter: pricePositionGetter,
         );
         _mainChartRender?.paint(canvas, rect);
@@ -55,7 +55,7 @@ mixin ChartPainterPaintMixin on ChartPainter {
   }) {
     if (!rect.isEmpty) {
       final ChartRender render = DragBarBackgroundRenderImpl(
-        dataViewer: this,
+        dataViewer: dataViewer,
       );
       render.paint(canvas, rect);
     }
@@ -63,9 +63,10 @@ mixin ChartPainterPaintMixin on ChartPainter {
 
   /// 繪製volume圖表
   void paintVolumeChart(Canvas canvas, Rect rect) {
-    switch (volumeChartState) {
+    switch (dataViewer.volumeChartState) {
       case VolumeChartState.volume:
-        final ChartRender render = VolumeChartRenderImpl(dataViewer: this);
+        final ChartRender render =
+            VolumeChartRenderImpl(dataViewer: dataViewer);
         render.paint(canvas, rect);
         break;
       case VolumeChartState.none:
@@ -76,18 +77,18 @@ mixin ChartPainterPaintMixin on ChartPainter {
   /// 繪製技術指標圖表
   void paintIndicatorChart(Canvas canvas, Rect rect) {
     final ChartRender? render;
-    switch (indicatorChartState) {
+    switch (dataViewer.indicatorChartState) {
       case IndicatorChartState.macd:
-        render = MACDChartRenderImpl(dataViewer: this);
+        render = MACDChartRenderImpl(dataViewer: dataViewer);
         break;
       case IndicatorChartState.rsi:
-        render = RSIChartRenderImpl(dataViewer: this);
+        render = RSIChartRenderImpl(dataViewer: dataViewer);
         break;
       case IndicatorChartState.wr:
-        render = WRChartRenderImpl(dataViewer: this);
+        render = WRChartRenderImpl(dataViewer: dataViewer);
         break;
       case IndicatorChartState.kdj:
-        render = KDJChartRenderImpl(dataViewer: this);
+        render = KDJChartRenderImpl(dataViewer: dataViewer);
         break;
       default:
         render = null;
@@ -99,42 +100,26 @@ mixin ChartPainterPaintMixin on ChartPainter {
   /// 繪製長按交錯線
   void paintLongPressCrossLine(
     Canvas canvas,
-    Size size,
     Rect mainChartRect,
-    Rect timelineRect,
   ) {
     // 取得長案的資料index
-    final index = getLongPressDataIndex();
+    final index = valueInfo.longPressDataIndex;
     if (index == null) {
       return;
     }
-    final x = dataIndexToRealX(index);
+    final x = valueInfo.dataIndexToRealX(index);
 
-    if (!timelineRect.isEmpty) {
-      _crossLinePaint.color = chartUiStyle.colorSetting.longPressVerticalLine;
-      _crossLinePaint.strokeWidth =
-          chartUiStyle.sizeSetting.longPressVerticalLineWidth *
-              chartGesture.scaleX;
+    _crossLinePaint.color =
+        dataViewer.chartUiStyle.colorSetting.longPressVerticalLine;
+    _crossLinePaint.strokeWidth =
+        dataViewer.chartUiStyle.sizeSetting.longPressVerticalLineWidth *
+            chartGesture.scaleX;
 
-      final upLineY = timelineRect.top;
-      final downLineY = timelineRect.bottom;
-
-      if (upLineY != 0) {
-        canvas.drawLine(
-          Offset(x, 0),
-          Offset(x, upLineY),
-          _crossLinePaint,
-        );
-      }
-
-      if (upLineY != 0) {
-        canvas.drawLine(
-          Offset(x, downLineY),
-          Offset(x, size.height),
-          _crossLinePaint,
-        );
-      }
-    }
+    canvas.drawLine(
+      Offset(x, 0),
+      Offset(x, mainChartRect.bottom),
+      _crossLinePaint,
+    );
 
     if (!mainChartRect.isEmpty) {
       _mainChartRender?.paintLongPressHorizontalLineAndValue(
@@ -146,21 +131,21 @@ mixin ChartPainterPaintMixin on ChartPainter {
 
   /// 繪製長按時間
   void paintLongPressTime(Canvas canvas, Rect rect) {
-    final index = getLongPressDataIndex();
+    final index = valueInfo.longPressDataIndex;
     if (index == null) {
       return;
     }
 
     // 取得資料的中心x軸位置
-    final x = dataIndexToRealX(index);
+    final x = valueInfo.dataIndexToRealX(index);
 
-    final sizes = chartUiStyle.sizeSetting;
-    final colors = chartUiStyle.colorSetting;
+    final sizes = dataViewer.chartUiStyle.sizeSetting;
+    final colors = dataViewer.chartUiStyle.colorSetting;
 
-    final data = datas[index];
+    final data = valueInfo.datas[index];
     final timePainter = TextPainter(
       text: TextSpan(
-        text: xAxisDateTimeFormatter(data.dateTime),
+        text: dataViewer.xAxisDateTimeFormatter(data.dateTime),
         style: TextStyle(
           color: colors.longPressTime,
           fontSize: sizes.longPressTime,
@@ -234,29 +219,35 @@ mixin ChartPainterPaintMixin on ChartPainter {
   }
 
   /// 繪製數值軸(y軸), 需要跳過時間軸
-  void paintValueAxisLine(Canvas canvas, Rect valueRect, Rect timelineRect) {
-    final colors = chartUiStyle.colorSetting;
-    final sizes = chartUiStyle.sizeSetting;
+  void paintValueAxisLine(Canvas canvas, Rect valueRect) {
+    final colors = dataViewer.chartUiStyle.colorSetting;
+    final sizes = dataViewer.chartUiStyle.sizeSetting;
     _rightValueLinePaint.color = colors.rightValueLine;
     _rightValueLinePaint.strokeWidth = sizes.rightValueLine;
 
-    // 繪製上方豎線
-    if (valueRect.top != timelineRect.top) {
-      canvas.drawLine(
-        Offset(valueRect.left, valueRect.top),
-        Offset(valueRect.left, timelineRect.top),
-        _rightValueLinePaint,
-      );
-    }
+    canvas.drawLine(
+      Offset(valueRect.left, valueRect.top),
+      Offset(valueRect.left, valueRect.top),
+      _rightValueLinePaint,
+    );
 
-    // 繪製下方豎線
-    if (valueRect.bottom != timelineRect.bottom) {
-      canvas.drawLine(
-        Offset(valueRect.left, timelineRect.bottom),
-        Offset(valueRect.left, valueRect.bottom),
-        _rightValueLinePaint,
-      );
-    }
+    // // 繪製上方豎線
+    // if (valueRect.top != timelineRect.top) {
+    //   canvas.drawLine(
+    //     Offset(valueRect.left, valueRect.top),
+    //     Offset(valueRect.left, timelineRect.top),
+    //     _rightValueLinePaint,
+    //   );
+    // }
+    //
+    // // 繪製下方豎線
+    // if (valueRect.bottom != timelineRect.bottom) {
+    //   canvas.drawLine(
+    //     Offset(valueRect.left, timelineRect.bottom),
+    //     Offset(valueRect.left, valueRect.bottom),
+    //     _rightValueLinePaint,
+    //   );
+    // }
   }
 
   /// 繪製時間軸(x軸)
@@ -264,8 +255,8 @@ mixin ChartPainterPaintMixin on ChartPainter {
     if (rect.isEmpty) {
       return;
     }
-    final sizes = chartUiStyle.sizeSetting;
-    final colors = chartUiStyle.colorSetting;
+    final sizes = dataViewer.chartUiStyle.sizeSetting;
+    final colors = dataViewer.chartUiStyle.colorSetting;
 
     // 繪製背景
     _timelinePaint.color = colors.timelineBg;
@@ -290,7 +281,8 @@ mixin ChartPainterPaintMixin on ChartPainter {
         ..strokeWidth = sizes.timelineBottomDivider,
     );
 
-    final contentWidth = rect.width - chartUiStyle.sizeSetting.rightSpace;
+    final contentWidth =
+        rect.width - dataViewer.chartUiStyle.sizeSetting.rightSpace;
     final columnWidth = contentWidth / sizes.gridColumns;
     final timeTextStyle = TextStyle(
       color: colors.timelineText,
@@ -304,9 +296,9 @@ mixin ChartPainterPaintMixin on ChartPainter {
 
       DateTime dateTime;
 
-      if (datas.isNotEmpty) {
-        final dataIndex = realXToDataIndex(x);
-        dateTime = datas[dataIndex].dateTime;
+      if (dataViewer.datas.isNotEmpty) {
+        final dataIndex = dataViewer.realXToDataIndex(x);
+        dateTime = dataViewer.datas[dataIndex].dateTime;
       } else {
         final subtractIndex = lastGridIndex - i;
         final subtractDuration = const Duration(days: 1) * subtractIndex;
@@ -314,7 +306,7 @@ mixin ChartPainterPaintMixin on ChartPainter {
       }
       final textPainter = TextPainter(
         text: TextSpan(
-          text: xAxisDateTimeFormatter(dateTime),
+          text: dataViewer.xAxisDateTimeFormatter(dateTime),
           style: timeTextStyle,
         ),
         textDirection: TextDirection.ltr,

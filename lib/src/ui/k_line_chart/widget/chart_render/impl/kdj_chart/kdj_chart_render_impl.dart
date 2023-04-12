@@ -112,7 +112,7 @@ class KDJChartRenderImpl extends KDJChartRender
 
   @override
   void paintTopValueText(Canvas canvas, Rect rect) {
-    final displayData = dataViewer.getLongPressData() ?? dataViewer.datas.last;
+    final displayData = dataViewer.longPressData ?? dataViewer.datas.last;
     final kdjData = displayData.indicatorData.kdj;
 
     if (kdjData == null) {

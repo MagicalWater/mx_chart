@@ -20,6 +20,8 @@ class PriceTagLine extends StatelessWidget {
 
   final PricePosition position;
 
+  final double? rectTop;
+
   /// 點擊全局的tag
   final VoidCallback? onTapGlobalTag;
 
@@ -30,6 +32,7 @@ class PriceTagLine extends StatelessWidget {
     required this.position,
     required this.uiStyle,
     required this.priceFormatter,
+    this.rectTop,
     this.globalTagOffsetX,
     this.onTapGlobalTag,
   }) : super(key: key);
@@ -49,7 +52,7 @@ class PriceTagLine extends StatelessWidget {
       children: [
         PositionLayout(
           xRatio: 0.5,
-          yFixed: position.valueToY(price),
+          yFixed: position.valueToY(price) + (rectTop ?? 0),
           child: _dashLine(
             context: context,
             color: uiStyle.colorSetting.realTimeLine,
@@ -59,7 +62,7 @@ class PriceTagLine extends StatelessWidget {
           padding: EdgeInsets.only(right: globalTagOffsetX ?? 0),
           child: PositionLayout(
             xRatio: (gridColumns - 1) / gridColumns,
-            yFixed: position.valueToY(price),
+            yFixed: position.valueToY(price) + (rectTop ?? 0),
             child: GlobalRealTimePriceTag(
               price: priceFormatter(price),
               uiStyle: uiStyle,
@@ -76,7 +79,7 @@ class PriceTagLine extends StatelessWidget {
     final colorSetting = uiStyle.colorSetting;
     return PositionLayout(
       xRatio: 1,
-      yFixed: position.valueToY(price),
+      yFixed: position.valueToY(price) + (rectTop ?? 0),
       anchorPoint: Alignment.centerRight,
       child: SizedBox(
         width: position.rightSpace,

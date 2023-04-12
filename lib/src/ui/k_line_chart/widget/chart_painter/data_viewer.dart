@@ -1,4 +1,4 @@
-
+import 'package:mx_chart/src/ui/k_line_chart/view/k_line_chart.dart' show KLineChart;
 import 'package:mx_chart/src/ui/k_line_chart/widget/chart_render/impl/drag_bar_background/drag_bar_background_render_impl.dart';
 
 import '../../model/model.dart';
@@ -11,76 +11,121 @@ import '../chart_render/impl/wr_chart/ui_style/wr_chart_ui_style.dart';
 import 'ui_style/k_line_chart_ui_style.dart';
 
 /// 顯示的資料
-abstract class DataViewer {
+class DataViewer {
   /// 視圖中, 顯示的第一個以及最後一個data的index
-  abstract int startDataIndex, endDataIndex;
+  int get startDataIndex => valueInfo.startDataIndex;
+
+  int get endDataIndex => valueInfo.endDataIndex;
 
   /// 當前x軸縮放
-  double get scaleX;
+  double get scaleX => valueInfo.chartGesture.scaleX;
 
   /// 長按的y軸位置
-  double? get longPressY;
+  double? get longPressY => valueInfo.chartGesture.isLongPress
+      ? valueInfo.chartGesture.longPressY
+      : null;
+
+  /// 長按的y軸資料
+  KLineData? get longPressData => valueInfo.longPressData;
+
+  /// 長案資料index
+  int? get longPressDataIndex => valueInfo.longPressDataIndex;
 
   /// 圖表資料
-  abstract final List<KLineData> datas;
+  List<KLineData> get datas => valueInfo.datas;
 
   /// 圖表通用ui風格
-  abstract final KLineChartUiStyle chartUiStyle;
+  KLineChartUiStyle chartUiStyle;
 
-  /// 主圖表ui風格
-  abstract final MainChartUiStyle mainChartUiStyle;
+  /// 主圖表ui風格ㄌ
+  MainChartUiStyle mainChartUiStyle;
 
   /// 成交量圖表ui風格
-  abstract final VolumeChartUiStyle volumeChartUiStyle;
+  VolumeChartUiStyle volumeChartUiStyle;
 
   /// macd圖表ui風格
-  abstract final MACDChartUiStyle macdChartUiStyle;
+  MACDChartUiStyle macdChartUiStyle;
 
   /// rsi圖表ui風格
-  abstract final RSIChartUiStyle rsiChartUiStyle;
+  RSIChartUiStyle rsiChartUiStyle;
 
   /// wr圖表ui風格
-  abstract final WRChartUiStyle wrChartUiStyle;
+  WRChartUiStyle wrChartUiStyle;
 
   /// kdj圖表ui風格
-  abstract final KDJChartUiStyle kdjChartUiStyle;
+  KDJChartUiStyle kdjChartUiStyle;
 
   /// 拖拉bar ui風格
-  abstract final DragBarBackgroundUiStyle dragBarUiStyle;
+  DragBarBackgroundUiStyle dragBarUiStyle;
 
   /// 主圖表顯示的資料
-  abstract final MainChartState mainChartState;
+  MainChartState mainChartState;
 
   /// 主圖表的技術指標線
-  abstract final MainChartIndicatorState mainChartIndicatorState;
+  MainChartIndicatorState mainChartIndicatorState;
 
   /// 買賣量圖表
-  abstract final VolumeChartState volumeChartState;
+  VolumeChartState volumeChartState;
 
   /// 技術指標圖表
-  abstract final IndicatorChartState indicatorChartState;
+  IndicatorChartState indicatorChartState;
 
   /// 技術指標設定
-  abstract final IndicatorSetting indicatorSetting;
+  IndicatorSetting indicatorSetting;
 
   /// 價格格式化
-  abstract final String Function(num price) priceFormatter;
+  String Function(num price) priceFormatter;
 
   /// 成交量格式化
-  abstract final String Function(num volume) volumeFormatter;
+  String Function(num volume) volumeFormatter;
 
   /// x軸日期時間格式化
-  abstract final String Function(DateTime dateTime) xAxisDateTimeFormatter;
+  String Function(DateTime dateTime) xAxisDateTimeFormatter;
 
-  /// 取得長按中的data index
-  int? getLongPressDataIndex();
+  final ChartPainterValueInfo valueInfo;
 
-  /// 取得長按中的data
-  KLineData? getLongPressData();
+  DataViewer({
+    required this.chartUiStyle,
+    required this.mainChartUiStyle,
+    required this.volumeChartUiStyle,
+    required this.macdChartUiStyle,
+    required this.rsiChartUiStyle,
+    required this.wrChartUiStyle,
+    required this.kdjChartUiStyle,
+    required this.dragBarUiStyle,
+    required this.mainChartState,
+    required this.mainChartIndicatorState,
+    required this.volumeChartState,
+    required this.indicatorChartState,
+    required this.indicatorSetting,
+    required this.priceFormatter,
+    required this.volumeFormatter,
+    required this.xAxisDateTimeFormatter,
+    required this.valueInfo,
+  });
+
+  void updateWithWidget(KLineChart widget) {
+    chartUiStyle = widget.chartUiStyle;
+    mainChartUiStyle = widget.mainChartUiStyle;
+    volumeChartUiStyle = widget.volumeChartUiStyle;
+    macdChartUiStyle = widget.macdChartUiStyle;
+    rsiChartUiStyle = widget.rsiChartUiStyle;
+    wrChartUiStyle = widget.wrChartUiStyle;
+    kdjChartUiStyle = widget.kdjChartUiStyle;
+    dragBarUiStyle = widget.dragBarBackgroundUiStyle;
+    mainChartState = widget.mainChartState;
+    mainChartIndicatorState = widget.mainChartIndicatorState;
+    volumeChartState = widget.volumeChartState;
+    indicatorChartState = widget.indicatorChartState;
+    indicatorSetting = widget.indicatorSetting;
+    priceFormatter = widget.priceFormatter;
+    volumeFormatter = widget.volumeFormatter;
+    xAxisDateTimeFormatter = widget.xAxisDateTimeFormatter;
+  }
 
   /// 將data的索引值轉換為畫布繪製的x軸座標
-  double dataIndexToRealX(int index);
+  double dataIndexToRealX(int index) => valueInfo.dataIndexToRealX(index);
 
   /// 將畫布繪製的x軸座標轉換為data的索引值
-  int realXToDataIndex(double realX);
+  int realXToDataIndex(double realX) => valueInfo.realXToDataIndex(realX);
 }
