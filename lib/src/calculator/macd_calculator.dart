@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../ui/k_line_chart/model/model.dart';
@@ -20,7 +21,7 @@ class MacdCalculator {
     final datas = [...oriData, ...newData];
     final startIndex = oriData.length;
 
-    final oriMacd = oriData.last.indicatorData.macd;
+    final oriMacd = oriData.lastOrNull?.indicatorData.macd;
     if (oriMacd == null) {
       if (kDebugMode) {
         print('MaCalculator(MacdLast): 原始資料的macd技術線不完整, 無法使用atLast方式計算技術線');

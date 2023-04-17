@@ -517,6 +517,7 @@ class _KLineChartState extends State<KLineChart>
               constraints.maxWidth,
               heightCompute.timeline,
             );
+
             return KeyedSubtree(
               key: totalKey,
               child: widget.layoutBuilder(

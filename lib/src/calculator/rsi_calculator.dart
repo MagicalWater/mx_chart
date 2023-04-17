@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
+
 import '../ui/k_line_chart/model/model.dart';
 
 /// 圖表技術指標計算
@@ -12,7 +14,7 @@ class RsiCalculator {
     final datas = [...oriData, ...newData];
     final startIndex = oriData.length;
 
-    final oriLastData = oriData.last.indicatorData.rsi;
+    final oriLastData = oriData.lastOrNull?.indicatorData.rsi;
 
     var periodAbsEmaValue = List<double>.generate(
       periods.length,

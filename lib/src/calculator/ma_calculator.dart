@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 import '../ui/k_line_chart/model/model.dart';
 
@@ -12,7 +13,7 @@ class MaCalculator {
     required List<KLineData> oriData,
     required List<KLineData> newData,
   }) {
-    final oriMa = oriData.last.indicatorData.ma?.ma;
+    final oriMa = oriData.lastOrNull?.indicatorData.ma?.ma;
     if (oriMa == null ||
         periods.any((element) => !oriMa.containsKey(element))) {
       if (kDebugMode) {

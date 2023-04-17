@@ -129,9 +129,9 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                main,
-                timeline,
                 volume,
+                timeline,
+                main,
                 indicator,
               ],
             );

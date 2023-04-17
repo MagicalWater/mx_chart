@@ -1,3 +1,6 @@
+## 2.0.0+3
+- Fixed an error in calculating technical indicators when oriData is empty 
+
 ## 2.0.0+2
 - Fixed the disappearance of the dividing line in the value block on the right
 

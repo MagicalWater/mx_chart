@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
+
 import '../ui/k_line_chart/model/model.dart';
 
 /// 圖表技術指標計算
@@ -16,7 +18,7 @@ class KdjCalculator {
 
     final startIndex = oriData.length;
 
-    final oriLastData = oriData.last.indicatorData.kdj;
+    final oriLastData = oriData.lastOrNull?.indicatorData.kdj;
     double k = oriLastData?.k ?? 0;
     double d = oriLastData?.d ?? 0;
 
