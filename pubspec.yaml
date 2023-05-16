@@ -1,10 +1,10 @@
 name: mx_chart
 description: k chart
-version: 2.0.0+3
+version: 2.0.1+1
 homepage: https://github.com/MagicalWater/mx_chart
 
 environment:
-  sdk: '>=2.18.2 <3.0.0'
+  sdk: '>=2.19.0 <4.0.0'
   flutter: ">=2.5.0"
 
 dependencies:
@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   decimal: ^2.3.0
   rational: ^2.2.0
-  intl: ^0.17.0
+  intl: ^0.18.0
   collection: ^1.16.0
   plugin_platform_interface: ^2.1.3
 

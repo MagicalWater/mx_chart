@@ -1,3 +1,7 @@
+## 2.0.1+1
+- dart sdk: update to '>=2.19.0 <3.0.0' 
+- package: intl update to ^0.18.0
+
 ## 2.0.0+3
 - Fixed an error in calculating technical indicators when oriData is empty 
 
