@@ -8,11 +8,15 @@ export '../ui_style/k_line_chart_ui_style.dart';
 
 class MainPainterImpl extends ChartPainter
     with ChartPainterPaintMixin {
+  /// 在父元件的偏移位置
+  final Offset Function() localPosition;
+
   /// 價格標示y軸位置獲取
   PricePositionGetter? pricePositionGetter;
 
   MainPainterImpl({
     required super.dataViewer,
+    required this.localPosition,
     this.pricePositionGetter,
   });
 
@@ -29,6 +33,7 @@ class MainPainterImpl extends ChartPainter
       canvas: canvas,
       rect: chartRect,
       pricePositionGetter: pricePositionGetter,
+      localPosition: localPosition,
     );
 
     // 數值軸

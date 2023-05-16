@@ -1,3 +1,6 @@
+## 2.0.2+1
+- Fixed the wrong y-axis position of long press when the position of the main chart is not at the first
+
 ## 2.0.1+1
 - dart sdk: update to '>=2.19.0 <3.0.0' 
 - package: intl update to ^0.18.0

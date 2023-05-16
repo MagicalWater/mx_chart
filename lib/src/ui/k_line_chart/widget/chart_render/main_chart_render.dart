@@ -12,8 +12,12 @@ abstract class MainChartRender extends ChartRender
   /// 價格標示y軸位置獲取
   final PricePositionGetter? pricePositionGetter;
 
+  /// 在父元件的偏移位置
+  final Offset Function() localPosition;
+
   MainChartRender({
     required DataViewer dataViewer,
+    required this.localPosition,
     this.pricePositionGetter,
   }) : super(dataViewer: dataViewer);
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mx_chart/src/extension/extension.dart';
 
 import '../../../../k_line_chart.dart';
-import '../../../chart_painter/data_viewer.dart';
 import 'main_chart_render_paint_mixin.dart';
 import 'main_chart_render_value_mixin.dart';
 
@@ -12,12 +11,10 @@ class MainChartRenderImpl extends MainChartRender
     with MainChartValueMixin, MainChartRenderPaintMixin {
   /// [pricePositionGetter] - 價格標示y軸位置獲取
   MainChartRenderImpl({
-    required DataViewer dataViewer,
-    PricePositionGetter? pricePositionGetter,
-  }) : super(
-          dataViewer: dataViewer,
-          pricePositionGetter: pricePositionGetter,
-        );
+    required super.dataViewer,
+    required super.localPosition,
+    super.pricePositionGetter,
+  });
 
   /// 繪製背景
   @override
@@ -343,6 +340,7 @@ class MainChartRenderImpl extends MainChartRender
     if (longPressY == null || dataIndex == null) {
       return;
     }
+    longPressY = longPressY - localPosition().dy;
 
     // 將y限制在最大最小值
     longPressY = longPressY.clamp(minY, maxY);

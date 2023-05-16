@@ -33,6 +33,7 @@ mixin ChartPainterPaintMixin on ChartPainter {
     required Canvas canvas,
     required Rect rect,
     PricePositionGetter? pricePositionGetter,
+    required Offset Function() localPosition,
   }) {
     switch (dataViewer.mainChartState) {
       case MainChartState.none:
@@ -41,6 +42,7 @@ mixin ChartPainterPaintMixin on ChartPainter {
       default:
         _mainChartRender ??= MainChartRenderImpl(
           dataViewer: dataViewer,
+          localPosition: localPosition,
           pricePositionGetter: pricePositionGetter,
         );
         _mainChartRender?.paint(canvas, rect);

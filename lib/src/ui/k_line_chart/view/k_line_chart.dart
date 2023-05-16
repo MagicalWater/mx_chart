@@ -300,6 +300,8 @@ class _KLineChartState extends State<KLineChart>
   /// main rect 串流
   late final Stream<Rect> _mainRectStream;
 
+  Rect? _mainRect;
+
   /// 拖拉偏移
   double dragOffset = 0;
 
@@ -552,6 +554,7 @@ class _KLineChartState extends State<KLineChart>
     final translation = mainRender.getTransformTo(totalRender).getTranslation();
     final offset = Offset(translation.x, translation.y);
     final bounds = mainRender.paintBounds.shift(offset);
+    _mainRect = bounds;
     _mainRectStreamController.add(bounds);
   }
 
@@ -581,6 +584,9 @@ class _KLineChartState extends State<KLineChart>
                   isNewerDisplay: isNewerDisplay,
                 );
                 _pricePositionStreamController.add(position);
+              },
+              localPosition: () {
+                return _mainRect?.topLeft ?? Offset.zero;
               },
             ),
           ),
