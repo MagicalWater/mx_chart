@@ -1,3 +1,6 @@
+## 2.0.3+1
+- KLineDataInfoTooltip adds a variable layoutBuilder
+
 ## 2.0.2+1
 - Fixed the wrong y-axis position of long press when the position of the main chart is not at the first
 

@@ -8,6 +8,16 @@ import 'k_line_data_tooltip.dart';
 export 'model/model.dart';
 export 'ui_style/k_line_data_tooltip_ui_style.dart';
 
+typedef KLineTooltipLayoutBuilder = Widget Function(
+  Widget date,
+  Widget open,
+  Widget close,
+  Widget high,
+  Widget low,
+  Widget change,
+  Widget volume,
+);
+
 /// 長按對應的k線資料彈窗
 class KLineDataInfoTooltip extends StatelessWidget {
   final LongPressData longPressData;
@@ -24,6 +34,9 @@ class KLineDataInfoTooltip extends StatelessWidget {
   /// 主圖表區塊
   final Rect? mainRect;
 
+  /// 欄位佈局
+  final KLineTooltipLayoutBuilder layoutBuilder;
+
   KLineData get data => longPressData.data;
 
   KLineData? get prevData => longPressData.prevData;
@@ -39,6 +52,33 @@ class KLineDataInfoTooltip extends StatelessWidget {
   /// 預設價格格式化
   static String _defaultPriceFormatter(num price) {
     return price.toStringAsFixed(2);
+  }
+
+  /// 預設資訊佈局
+  static Widget _defaultLayoutBuilder(
+    Widget date,
+    Widget open,
+    Widget close,
+    Widget high,
+    Widget low,
+    Widget change,
+    Widget volume,
+  ) {
+    return IntrinsicWidth(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          date,
+          open,
+          close,
+          high,
+          low,
+          change,
+          volume,
+        ],
+      ),
+    );
   }
 
   /// 預設成交量格式化
@@ -61,6 +101,7 @@ class KLineDataInfoTooltip extends StatelessWidget {
     this.tooltipPrefix = const TooltipPrefix(),
     this.dateTimeFormatter = _defaultDateTimeFormatter,
     this.priceFormatter = _defaultPriceFormatter,
+    this.layoutBuilder = _defaultLayoutBuilder,
     this.volumeFormatter,
   }) : super(key: key);
 
@@ -85,20 +126,14 @@ class KLineDataInfoTooltip extends StatelessWidget {
           color: colors.background,
           border: Border.all(color: colors.border, width: sizes.borderWidth),
         ),
-        child: IntrinsicWidth(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _date(),
-              _open(),
-              _close(),
-              _high(),
-              _low(),
-              _changedValueAndRate(),
-              _volume(),
-            ],
-          ),
+        child: layoutBuilder(
+          _date(),
+          _open(),
+          _close(),
+          _high(),
+          _low(),
+          _changedValueAndRate(),
+          _volume(),
         ),
       ),
     );
