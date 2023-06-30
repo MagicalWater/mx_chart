@@ -32,7 +32,7 @@ mixin ChartPainterPaintMixin on ChartPainter {
   void paintMainChart({
     required Canvas canvas,
     required Rect rect,
-    PricePositionGetter? pricePositionGetter,
+    ChartPositionGetter? pricePositionGetter,
     required Offset Function() localPosition,
   }) {
     switch (dataViewer.mainChartState) {

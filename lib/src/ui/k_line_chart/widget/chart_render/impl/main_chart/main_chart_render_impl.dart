@@ -251,6 +251,7 @@ class MainChartRenderImpl extends MainChartRender
     pricePositionGetter?.call(
       rightRemainingSpace,
       isNewerDisplay,
+      valueToRealY,
       valueToRealYWithClamp,
     );
   }

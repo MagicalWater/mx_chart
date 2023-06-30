@@ -25,12 +25,11 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
   Widget _view() {
     Widget _content(KChartState state) {
       const heightSetting = ChartHeightRatioSetting(
-        // mainFixed: 100,
-        mainFixed: 60,
-        volumeRatio: 0.8,
-        indicatorRatio: 0.2,
-        timelineFixed: 0
-      );
+          // mainFixed: 100,
+          mainFixed: 60,
+          volumeRatio: 0.8,
+          indicatorRatio: 0.2,
+          timelineFixed: 0);
       final compute = heightSetting.computeChartHeight(
         totalHeight: 100,
         mainChartState: MainChartState.kLine,
@@ -60,10 +59,7 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
               timelineBottomDivider: 2,
             ),
             heightRatioSetting: ChartHeightRatioSetting(
-              mainFixed: 300,
-              volumeFixed: 80,
-              indicatorFixed: 80
-            ),
+                mainFixed: 300, volumeFixed: 80, indicatorFixed: 80),
           ),
           mainChartUiStyle: const MainChartUiStyle(
             colorSetting: MainChartColorSetting(),
@@ -128,14 +124,32 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           layoutBuilder: (context, main, volume, indicator, timeline) {
             return Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                volume,
-                timeline,
-                main,
-                indicator,
-              ],
+              children: [volume, main, indicator, timeline],
             );
           },
+          markers: [
+            MarkerData(
+              id: '1',
+              name: '1',
+              positions: [
+                MarkerPosition(
+                  dateTime: DateTime.parse('2023-06-23T13:00:00'),
+                  xRate: 0.5,
+                  price: 68.20,
+                ),
+                MarkerPosition(
+                  dateTime: DateTime.parse('2023-06-28T00:00:00'),
+                  xRate: 0.5,
+                  price: 67.9,
+                ),
+              ],
+              type: MarkerType.priceLine,
+              color: Colors.yellow,
+              strokeWidth: 2,
+            ),
+          ],
+
+          dataPeriod: const Duration(minutes: 1),
           // priceTagBuilder: (context, position) {
           //   return Stack(
           //     children: [

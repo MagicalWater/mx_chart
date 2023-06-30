@@ -10,7 +10,7 @@ export 'impl/main_chart/main_chart_render_impl.dart';
 abstract class MainChartRender extends ChartRender
     implements ChartComponentRender {
   /// 價格標示y軸位置獲取
-  final PricePositionGetter? pricePositionGetter;
+  final ChartPositionGetter? pricePositionGetter;
 
   /// 在父元件的偏移位置
   final Offset Function() localPosition;

@@ -12,14 +12,14 @@ class ChartRepository {
     var parseJson = json.decode(result);
     List list = parseJson['data'];
     var datas = list.map((json) {
-      final milliSecond = (json['date'] as num).toInt();
+      final milliSecond = DateTime.parse(json['datetime']).millisecondsSinceEpoch;
       return KLineData(
         open: (json['open'] as num).toDouble(),
         high: (json['high'] as num).toDouble(),
         low: (json['low'] as num).toDouble(),
         close: (json['close'] as num).toDouble(),
-        volume: (json['vol'] as num).toDouble(),
-        amount: (json['amount'] as num).toDouble(),
+        volume: (json['volume'] as num).toDouble(),
+        amount: 0,
         dateTime: DateTime.fromMillisecondsSinceEpoch(milliSecond),
       );
     }).toList();

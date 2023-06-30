@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mx_chart/src/ui/k_line_chart/widget/chart_painter/data_viewer.dart';
 import 'package:mx_chart/src/ui/k_line_chart/widget/chart_render/drag_bar_render.dart';
+import 'package:mx_chart/src/ui/marker/chart_marker_painter.dart';
 import 'package:mx_chart/src/util/date_util.dart';
 
 import '../../widget/position_layout.dart';
@@ -26,6 +27,7 @@ import '../widget/k_line_data_tooltip/k_line_data_tooltip.dart';
 import '../widget/price_tag_line.dart';
 import '../widget/touch_gesture_dector/touch_gesture_dector.dart';
 
+export '../../marker/chart_marker_painter.dart';
 export '../model/model.dart';
 export '../widget/chart_painter/chart_painter.dart';
 export '../widget/chart_render/drag_bar_render.dart';
@@ -197,6 +199,12 @@ class KLineChart extends StatefulWidget {
   ///
   final ChartLayoutBuilder layoutBuilder;
 
+  /// 標記列表
+  final List<MarkerData>? markers;
+
+  /// 圖表資料的時間週期(帶入此值才可以正常顯示[markers])
+  final Duration? dataPeriod;
+
   const KLineChart({
     Key? key,
     required this.datas,
@@ -232,6 +240,8 @@ class KLineChart extends StatefulWidget {
     // ],
     this.layoutBuilder = _defaultLayoutBuilder,
     this.dragBar = true,
+    this.markers,
+    this.dataPeriod,
   }) : super(key: key);
 
   /// 預設x軸時間格式化
@@ -331,8 +341,10 @@ class _KLineChartState extends State<KLineChart>
 
     realTimePrice = widget.datas.lastOrNull?.close;
 
-    _pricePositionStream = _pricePositionStreamController.stream.distinct();
-    _longPressDataStream = _longPressDataStreamController.stream.distinct();
+    _pricePositionStream =
+        _pricePositionStreamController.stream.asBroadcastStream().distinct();
+    _longPressDataStream =
+        _longPressDataStreamController.stream.asBroadcastStream().distinct();
     _mainRectStream =
         _mainRectStreamController.stream.asBroadcastStream().distinct();
 
@@ -538,6 +550,9 @@ class _KLineChartState extends State<KLineChart>
           // 長按時顯示的詳細資訊彈窗
           _tooltip(context),
 
+          // 標記
+          // _mainMarker(),
+
           // 高度比例拖曳bar
           _heightRatioDragBar(),
         ],
@@ -575,11 +590,13 @@ class _KLineChartState extends State<KLineChart>
             size: Size(width, height),
             painter: MainPainterImpl(
               dataViewer: dataViewer,
-              pricePositionGetter: (rightSpace, isNewerDisplay, valueToY) {
+              chartPositionGetter:
+                  (rightSpace, isNewerDisplay, priceToY, priceToYWithClamp) {
                 final position = PricePosition(
                   canvasWidth: chartGesture.drawContentInfo!.canvasWidth,
                   rightSpace: rightSpace,
-                  valueToY: valueToY,
+                  priceToY: priceToY,
+                  priceToYWithClamp: priceToYWithClamp,
                   lastPrice: realTimePrice,
                   isNewerDisplay: isNewerDisplay,
                 );
@@ -632,6 +649,46 @@ class _KLineChartState extends State<KLineChart>
         size: Size(width, height),
         painter: TimelinePainterImpl(dataViewer: dataViewer),
       ),
+    );
+  }
+
+  /// 在主圖表繪製標記
+  Widget _mainMarker() {
+    return StreamBuilder<Rect>(
+      stream: _mainRectStream,
+      builder: (context, snapshot) {
+        final mainRect = snapshot.hasData ? snapshot.data : null;
+        return StreamBuilder<PricePosition>(
+          stream: _pricePositionStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasData &&
+                mainRect != null &&
+                !mainRect.isEmpty &&
+                widget.dataPeriod != null) {
+              final position = snapshot.data!;
+
+              // print('繪製目標方塊: $mainRect => ${mainRect.width}');
+              return Positioned(
+                top: mainRect.top,
+                left: mainRect.left,
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    size: Size(mainRect.width, mainRect.height),
+                    painter: ChartMarkerPainter(
+                      markers: widget.markers ?? [],
+                      painterValueInfo: painterValueInfo,
+                      pricePosition: position,
+                      period: widget.dataPeriod!,
+                      priceFormatter: widget.priceFormatter,
+                    ),
+                  ),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        );
+      },
     );
   }
 
@@ -757,7 +814,7 @@ class _KLineChartState extends State<KLineChart>
 
     return PositionLayout(
       xFixed: position.canvasWidth - position.rightSpace,
-      yFixed: position.valueToY(realTimePrice!) + mainRect.top,
+      yFixed: position.priceToY(realTimePrice!) + mainRect.top,
       child: Stack(
         alignment: Alignment.center,
         children: [

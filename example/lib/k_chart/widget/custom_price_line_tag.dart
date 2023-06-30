@@ -63,12 +63,12 @@ class CustomPriceLineTag extends StatelessWidget {
       children: [
         PositionLayout(
           xRatio: 0.5,
-          yFixed: position.valueToY(price),
+          yFixed: position.priceToY(price),
           child: _dashLine(context: context, color: themeColor),
         ),
         PositionLayout(
           xRatio: (gridColumns - 1) / gridColumns,
-          yFixed: position.valueToY(price),
+          yFixed: position.priceToY(price),
           child: CustomGlobalPriceTag(
             tag: priceFormatter(price),
             themeColor: themeColor,
@@ -78,7 +78,7 @@ class CustomPriceLineTag extends StatelessWidget {
         ),
         PositionLayout(
           xRatio: 0,
-          yFixed: position.valueToY(price),
+          yFixed: position.priceToY(price),
           anchorPoint: Alignment.centerLeft,
           child: _leftTag(context),
         ),
@@ -92,18 +92,18 @@ class CustomPriceLineTag extends StatelessWidget {
       children: [
         PositionLayout(
           xRatio: 0.5,
-          yFixed: position.valueToY(price),
+          yFixed: position.priceToY(price),
           child: _dashLine(context: context, color: themeColor),
         ),
         PositionLayout(
           xRatio: 1,
-          yFixed: position.valueToY(price),
+          yFixed: position.priceToY(price),
           anchorPoint: Alignment.centerRight,
           child: _rightSidePrice(context),
         ),
         PositionLayout(
           xRatio: 0,
-          yFixed: position.valueToY(price),
+          yFixed: position.priceToY(price),
           anchorPoint: Alignment.centerLeft,
           child: _leftTag(context),
         ),

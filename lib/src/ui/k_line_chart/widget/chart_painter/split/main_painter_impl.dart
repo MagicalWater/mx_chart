@@ -12,12 +12,12 @@ class MainPainterImpl extends ChartPainter
   final Offset Function() localPosition;
 
   /// 價格標示y軸位置獲取
-  PricePositionGetter? pricePositionGetter;
+  ChartPositionGetter? chartPositionGetter;
 
   MainPainterImpl({
     required super.dataViewer,
     required this.localPosition,
-    this.pricePositionGetter,
+    this.chartPositionGetter,
   });
 
   @override
@@ -32,7 +32,7 @@ class MainPainterImpl extends ChartPainter
     paintMainChart(
       canvas: canvas,
       rect: chartRect,
-      pricePositionGetter: pricePositionGetter,
+      pricePositionGetter: chartPositionGetter,
       localPosition: localPosition,
     );
 
