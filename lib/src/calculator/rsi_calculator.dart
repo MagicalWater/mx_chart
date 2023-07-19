@@ -63,6 +63,9 @@ class RsiCalculator {
   /// 計算相對強弱指標
   /// RSI (Relative Strength Index)
   /// [periods] - 週期, 默認為 [6, 12, 24]
+  /// RSI = n日漲幅平均值 / (n日漲幅平均值+ n日跌幅平均值) × 100
+  /// n日漲幅平均值 = n日內上漲日總上漲幅度加總 / n
+  /// n日跌幅平均值 = n日內下跌日總下跌幅度加總 / n
   static void calculateRSI({
     List<int> periods = const [6, 12, 24],
     required List<KLineData> datas,
