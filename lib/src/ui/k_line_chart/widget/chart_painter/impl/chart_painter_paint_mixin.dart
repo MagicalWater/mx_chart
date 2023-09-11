@@ -299,7 +299,7 @@ mixin ChartPainterPaintMixin on ChartPainter {
       DateTime dateTime;
 
       if (dataViewer.datas.isNotEmpty) {
-        final dataIndex = dataViewer.realXToDataIndex(x);
+        final dataIndex = dataViewer.realXToDataIndexWithClamp(x);
         dateTime = dataViewer.datas[dataIndex].dateTime;
       } else {
         final subtractIndex = lastGridIndex - i;

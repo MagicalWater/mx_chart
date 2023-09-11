@@ -127,5 +127,5 @@ class DataViewer {
   double dataIndexToRealX(int index) => valueInfo.dataIndexToRealX(index);
 
   /// 將畫布繪製的x軸座標轉換為data的索引值
-  int realXToDataIndex(double realX) => valueInfo.realXToDataIndex(realX);
+  int realXToDataIndexWithClamp(double realX) => valueInfo.realXToDataIndexWithClamp(realX);
 }

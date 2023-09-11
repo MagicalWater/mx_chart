@@ -17,6 +17,9 @@ class TouchGestureDetector extends StatefulWidget {
 
   final Widget? child;
 
+  /// 觸摸檢測行為
+  final HitTestBehavior? behavior;
+
   const TouchGestureDetector({
     Key? key,
     this.child,
@@ -25,6 +28,7 @@ class TouchGestureDetector extends StatefulWidget {
     this.onTouchEnd,
     this.onTouchCancel,
     this.isAllowPointerMove,
+    this.behavior,
   }) : super(key: key);
 
   @override
@@ -40,6 +44,7 @@ class _TouchGestureDetectorState extends State<TouchGestureDetector> {
   Widget build(BuildContext context) {
     return RawGestureDetector(
       key: gestureKey,
+      behavior: widget.behavior,
       gestures: <Type, GestureRecognizerFactory>{
         MultiTouchGestureRecognizer: MultiTouchGestureRecognizer.factory(
           transformPositionKey: gestureKey,

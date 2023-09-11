@@ -1,128 +1,190 @@
 import 'package:flutter/material.dart';
-import 'package:mx_chart/src/ui/marker/chart_marker_painter.dart';
+
+import '../painter.dart';
 
 /// 水平線
 extension ParallelMarker on ChartMarkerPainter {
   /// 水平線
-  List<Path>? drawParallel(Canvas canvas, Size size, MarkerData data) {
-    // 取得三個點
-    final point1 = data.positions[0];
-    final point2 = data.positions[1];
-    final point3 = data.positions[2];
+  void drawParallel(Canvas canvas, Size size, MarkerPath marker) {
+    final data = marker.data;
 
-    // 先取得前兩個點如同趨勢線算出斜率以及截距
-    final x1 = painterValueInfo.timeToDisplayX(
-          point1.dateTime,
-          percent: point1.xRate,
-        ) ??
-        painterValueInfo.estimateTimeToDisplayX(
-          point1.dateTime,
-          period: period,
-          percent: point1.xRate,
-        );
+    // 是否編輯中
+    final isEdit = isMarkerEdit(data);
 
-    final x2 = painterValueInfo.timeToDisplayX(
-          point2.dateTime,
-          percent: point2.xRate,
-        ) ??
-        painterValueInfo.estimateTimeToDisplayX(
-          point2.dateTime,
-          period: period,
-          percent: point2.xRate,
-        );
+    final pos1 = data.positions.safeGet(0);
+    final pos2 = data.positions.safeGet(1);
+    final pos3 = data.positions.safeGet(2);
 
-    final x3 = painterValueInfo.timeToDisplayX(
-          point3.dateTime,
-          percent: point3.xRate,
-        ) ??
-        painterValueInfo.estimateTimeToDisplayX(
-          point3.dateTime,
-          period: period,
-          percent: point3.xRate,
-        );
+    // 偏移值
+    final offset = getMarkerOffset(data);
 
-    // 只要有一個點是null, 就不繪製
-    if (x1 == null || x2 == null || x3 == null) {
-      return null;
+    if (pos1 == null || pos2 == null || pos3 == null) {
+      // 檢查是否為編輯模式
+      if (isEdit) {
+        // 是編輯模式, 允許
+        print('編輯模式');
+      } else {
+        print('不是編輯模式');
+        // 不是編輯模式, 不允許
+        marker.path = null;
+        marker.anchorPoint = [];
+        return;
+      }
     }
 
-    final y1 = pricePosition.priceToY(point1.price);
-    final y2 = pricePosition.priceToY(point2.price);
-    final y3 = pricePosition.priceToY(point3.price);
+    final x1 = pos1?.safeGetX(data, painterValueInfo, period);
+    final x2 = pos2?.safeGetX(data, painterValueInfo, period);
+    var x3 = pos3?.safeGetX(data, painterValueInfo, period);
 
-    // 取得斜率
-    final slope = (y2 - y1) / (x2 - x1);
+    final canPoint1Draw = pos1 != null && x1 != null;
+    final canPoint2Draw = pos2 != null && x2 != null;
+    final canPoint3Draw = pos3 != null && x3 != null;
 
-    // 取得截距
-    final intercept = y1 - slope * x1;
+    if (canPoint1Draw && canPoint2Draw && canPoint3Draw) {
+      // 點3的x不可以超過點1, 點2
+      x3 = x3.clamp(x1, x2);
+    }
 
-    // 取得真實的x軸位置
-    final realX1 = painterValueInfo.displayXToRealX(x1);
-    final realX2 = painterValueInfo.displayXToRealX(x2);
+    // realPoint1,2 => 底部基準點
+    // realPoint3,4 => 對應起始點, 結尾點
+    // centerPoint1,2 => 中間起始點, 結尾點
+    Offset? realPoint1,
+        realPoint2,
+        realPoint3,
+        realPoint4,
+        centerPoint1,
+        centerPoint2;
 
-    // 轉化為真實的y軸位置
-    final realY1 = pricePosition.priceToY(point1.price);
-    final realY2 = pricePosition.priceToY(point2.price);
+    Offset? anchorPoint1;
 
-    // 取得第一條線中, 在x座標為x3位置的y為多少
+    // 斜率, 截距
+    double? slope, intercept;
 
-    // 套入斜率以及截距取得y
-    final x3BottomY = slope * x3 + intercept;
+    double? realX1, realX2, realX3, y1, y2, y3;
 
-    final differenceY = y3 - x3BottomY;
+    if (canPoint1Draw) {
+      y1 = pricePosition.priceToY(pos1.price);
+      realX1 = painterValueInfo.displayXToRealX(x1);
+      // 取得真實的點位
+      realPoint1 = Offset(realX1, y1) + offset;
+    }
 
-    // x3的原點y減去x3BottomY就是y個差距, 就可以取得對應的線的起始點以及結尾點
-    final realY3Start = realY1 + differenceY;
-    final realY3End = realY2 + differenceY;
+    if (canPoint2Draw) {
+      y2 = pricePosition.priceToY(pos2.price);
+      realX2 = painterValueInfo.displayXToRealX(x2);
+      // 取得真實的點位
+      realPoint2 = Offset(realX2, y2) + offset;
+    }
 
-    final realYCenterStart = realY1 + (differenceY / 2);
-    final realYCenterEnd = realY2 + (differenceY / 2);
+    if (canPoint3Draw) {
 
-    // 生成需要繪製的路徑
-    // 原本線
-    final line1 = Path()
-      ..moveTo(realX1, realY1)
-      ..lineTo(realX2, realY2);
+      y3 = pricePosition.priceToY(pos3.price);
+      realX3 = painterValueInfo.displayXToRealX(x3!);
+      // 取得真實的點位
+      anchorPoint1 = Offset(realX3, y3) + offset;
+    }
 
-    // 對應線
-    final line2 = Path()
-      ..moveTo(realX1, realY3Start)
-      ..lineTo(realX2, realY3End);
+    if (canPoint1Draw && canPoint2Draw && canPoint3Draw) {
 
-    // 中間線
-    final line3 = Path()
-      ..moveTo(realX1, realYCenterStart)
-      ..lineTo(realX2, realYCenterEnd);
+      // 取得斜率
+      slope = (y2! - y1!) / (x2 - x1);
+      // 取得截距
+      intercept = y1 - slope * x1;
 
-    // 背景
-    final bg = Path()
-      ..moveTo(realX1, realY1)
-      ..lineTo(realX2, realY2)
-      ..lineTo(realX2, realY3End)
-      ..lineTo(realX1, realY3Start)
-      ..close();
+      // 取得第一條線中, 當x座標為x3位置的y為多少
 
-    final paint = Paint();
+      // 套入斜率以及截距取得y
+      final x3BottomY = slope * x3! + intercept;
 
-    // 生成繪製畫筆
-    paint
-      ..color = data.color
-      ..strokeWidth = data.strokeWidth
-      ..style = PaintingStyle.fill;
+      final differenceY = y3! - x3BottomY;
+      // print('點1 => $x1, $y1');
+      // print('點2 => $x2, $y2');
+      // print('點3 => $x3, $y3');
 
-    canvas.drawPath(bg, paint..color = data.color.withOpacity(0.5));
+      realPoint3 = Offset(realX1!, y1 + differenceY) + offset;
+      realPoint4 = Offset(realX2!, y2 + differenceY) + offset;
 
-    // 繪製底色
-    paint
-      ..color = data.color
-      ..strokeWidth = data.strokeWidth
-      ..style = PaintingStyle.stroke;
+      centerPoint1 = Offset(realX1, y1 + (differenceY / 2)) + offset;
+      centerPoint2 = Offset(realX2, y2 + (differenceY / 2)) + offset;
+    }
 
-    // 繪製
-    canvas.drawPath(line1, paint);
-    canvas.drawPath(line2, paint);
-    canvas.drawPath(line3, paint..strokeWidth = 1);
+    Path? extendPath;
 
-    return [line1, line2];
+    if (realPoint1 != null &&
+        realPoint2 != null &&
+        realPoint3 != null &&
+        realPoint4 != null &&
+        centerPoint1 != null &&
+        centerPoint2 != null) {
+      final path = Path();
+
+      // 生成需要繪製的路徑
+      // 原本線
+      path
+        ..moveTo(realPoint1.dx, realPoint1.dy)
+        ..lineTo(realPoint2.dx, realPoint2.dy);
+
+      // 對應線
+      path
+        ..moveTo(realPoint3.dx, realPoint3.dy)
+        ..lineTo(realPoint4.dx, realPoint4.dy);
+
+      extendPath = Path()
+        ..moveTo(realPoint1.dx, realPoint1.dy)
+        ..lineTo(realPoint2.dx, realPoint2.dy)
+        ..lineTo(realPoint4.dx, realPoint4.dy)
+        ..lineTo(realPoint3.dx, realPoint3.dy)
+        ..close();
+
+      // 中間線
+      final line3 = Path()
+        ..moveTo(centerPoint1.dx, centerPoint1.dy)
+        ..lineTo(centerPoint2.dx, centerPoint2.dy);
+
+      // 背景
+      final bg = Path()
+        ..moveTo(realPoint1.dx, realPoint1.dy)
+        ..lineTo(realPoint2.dx, realPoint2.dy)
+        ..lineTo(realPoint4.dx, realPoint4.dy)
+        ..lineTo(realPoint3.dx, realPoint3.dy)
+        ..close();
+
+      final paint = Paint();
+
+      // 生成繪製畫筆
+      paint
+        ..color = data.color
+        ..strokeWidth = data.strokeWidth
+        ..style = PaintingStyle.fill;
+
+      canvas.drawPath(bg, paint..color = data.color.withOpacity(0.5));
+
+      // 繪製底色
+      paint
+        ..color = data.color
+        ..strokeWidth = data.strokeWidth
+        ..style = PaintingStyle.stroke;
+
+      // 繪製
+      drawPath(path: path, canvas: canvas, marker: marker, paint: paint);
+      drawPath(
+        path: line3,
+        canvas: canvas,
+        marker: marker,
+        paint: paint..strokeWidth = 1,
+      );
+    }
+
+    final anchorPointPath = drawAnchorPath(
+      data: data,
+      isEdit: isEdit,
+      canvas: canvas,
+      points: [realPoint1, realPoint2, anchorPoint1].whereType<Offset>(),
+    );
+
+    // print('繪製錨點: $realPoint1 => $realPoint2 => $anchorPoint1');
+
+    marker.path = extendPath;
+    marker.anchorPoint = anchorPointPath;
   }
 }

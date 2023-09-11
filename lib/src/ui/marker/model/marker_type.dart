@@ -32,9 +32,9 @@ enum MarkerType {
   /// 1個錨點
   priceLine,
 
-  /// 連波線
+  /// 3連波線
   /// 多個錨點
-  waveLine,
+  waveLine3,
 
   /// 矩形
   /// 2個錨點
@@ -43,4 +43,34 @@ enum MarkerType {
   /// 斐波那契
   /// 2個錨點
   fibonacci,
+}
+
+extension MarkerTypePoint on MarkerType {
+  int get needPoint {
+    switch (this) {
+      case MarkerType.trendLine:
+        return 2;
+      case MarkerType.extendTrendLine:
+        return 2;
+      case MarkerType.ray:
+        return 2;
+      case MarkerType.horizontalTrade:
+        return 1;
+      case MarkerType.horizontalExtend:
+        return 2;
+      case MarkerType.verticalExtend:
+        return 2;
+      case MarkerType.parallel:
+        return 3;
+      case MarkerType.priceLine:
+        return 1;
+      case MarkerType.waveLine3:
+        return 3;
+      case MarkerType.rectangle:
+        return 2;
+      case MarkerType.fibonacci:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+    }
+  }
 }

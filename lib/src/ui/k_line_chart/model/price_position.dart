@@ -7,6 +7,7 @@ typedef ChartPositionGetter = void Function(
   bool isNewerDisplay,
   double Function(double price) priceToY,
   double Function(double price) priceToYWithClamp,
+  double Function(double realY) realYToPrice,
 );
 
 /// 價格的位置
@@ -29,6 +30,9 @@ class PricePosition {
   /// 對應[ChartPositionGetter.priceToYWithClamp]
   final double Function(double price) priceToYWithClamp;
 
+  /// 對應[ChartPositionGetter.realYToPrice]
+  final double Function(double realY) realYToPrice;
+
   PricePosition({
     required this.canvasWidth,
     required this.rightSpace,
@@ -36,5 +40,6 @@ class PricePosition {
     required this.priceToYWithClamp,
     required this.lastPrice,
     required this.isNewerDisplay,
+    required this.realYToPrice,
   });
 }

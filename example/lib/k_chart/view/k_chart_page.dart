@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:ui' as ui;
 import 'package:mx_chart/mx_chart.dart';
 import 'package:mx_chart_example/k_chart/bloc/k_chart_bloc.dart';
 import 'package:mx_chart_example/repository/chart_repository.dart';
@@ -13,6 +14,9 @@ class KChartPage extends StatefulWidget {
 }
 
 class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
+  /// 圖表控制器
+  final _chartController = KLineChartController();
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -52,6 +56,7 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           mainChartIndicatorState: state.mainChartIndicatorState,
           volumeChartState: state.volumeChartState,
           indicatorChartState: state.indicatorChartState,
+          controller: _chartController,
           chartUiStyle: const KLineChartUiStyle(
             colorSetting: ChartColorSetting(),
             sizeSetting: ChartSizeSetting(
@@ -127,29 +132,43 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
               children: [volume, main, indicator, timeline],
             );
           },
-          markers: [
-            MarkerData(
-              id: '1',
-              name: '1',
-              positions: [
-                MarkerPosition(
-                  dateTime: DateTime.parse('2023-06-23T13:00:00'),
-                  xRate: 0.5,
-                  price: 68.20,
-                ),
-                MarkerPosition(
-                  dateTime: DateTime.parse('2023-06-28T00:00:00'),
-                  xRate: 0.5,
-                  price: 67.9,
-                ),
-              ],
-              type: MarkerType.priceLine,
-              color: Colors.yellow,
-              strokeWidth: 2,
-            ),
+          initMarkers: [
+            // MarkerData(
+            //   id: '1',
+            //   name: '1',
+            //   positions: [
+            //     MarkerPosition(
+            //       dateTime: DateTime.parse('2023-06-23T13:00:00'),
+            //       xRate: 0.5,
+            //       price: 68.20,
+            //     ),
+            //     MarkerPosition(
+            //       dateTime: DateTime.parse('2023-06-26T00:00:00'),
+            //       xRate: 0.5,
+            //       price: 69.9,
+            //     ),
+            //     MarkerPosition(
+            //       dateTime: DateTime.parse('2023-06-28T00:00:00'),
+            //       xRate: 0.8,
+            //       price: 67.9,
+            //     ),
+            //   ],
+            //   type: MarkerType.waveLine3,
+            //   color: Colors.yellow,
+            //   strokeWidth: 2,
+            //   anchorPointRadius: 5,
+            // ),
           ],
 
           dataPeriod: const Duration(minutes: 1),
+
+          onMarkerAdd: (marker) {
+            print('Marker新增成功: ${marker.id}');
+          },
+
+          onMarkerUpdate: (markers) {
+            print('Marker更新: ${markers.last}');
+          },
           // priceTagBuilder: (context, position) {
           //   return Stack(
           //     children: [
@@ -320,6 +339,19 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           onPressed: () {
             //拷貝一個對象，修改數據
             bloc().add(KChartAddDataEvent());
+          },
+        ),
+        button(
+          "標記新增模式",
+          onPressed: () {
+            _chartController.setMarkerMode(MarkerMode.add, markerTypeIfAdd: MarkerType.priceLine);
+          },
+        ),
+
+        button(
+          "標記可編輯瀏覽模式",
+          onPressed: () {
+            _chartController.setMarkerMode(MarkerMode.editableView);
           },
         ),
       ],

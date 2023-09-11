@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mx_chart/src/ui/k_line_chart/widget/chart_painter/data_viewer.dart';
 import 'package:mx_chart/src/ui/k_line_chart/widget/chart_render/drag_bar_render.dart';
-import 'package:mx_chart/src/ui/marker/chart_marker_painter.dart';
+import 'package:mx_chart/src/ui/marker/chart_marker.dart';
 import 'package:mx_chart/src/util/date_util.dart';
 
 import '../../widget/position_layout.dart';
@@ -27,7 +27,7 @@ import '../widget/k_line_data_tooltip/k_line_data_tooltip.dart';
 import '../widget/price_tag_line.dart';
 import '../widget/touch_gesture_dector/touch_gesture_dector.dart';
 
-export '../../marker/chart_marker_painter.dart';
+export '../../marker/chart_marker.dart';
 export '../model/model.dart';
 export '../widget/chart_painter/chart_painter.dart';
 export '../widget/chart_render/drag_bar_render.dart';
@@ -177,33 +177,33 @@ class KLineChart extends StatefulWidget {
   /// 主圖表下方的拖拉bar元件構建
   final Widget Function(BuildContext context, bool isLongPress)? dragBarBuilder;
 
-  /// 圖表組件排序
-  // final List<ChartComponent> componentSort;
-
   /// 拖拉bar是否顯示
   final bool dragBar;
 
-  /// 自定義插入圖表之間組件
-  /// [index] - 代表是第幾個自定義組建
-  /// 排序從0開始, 第1個位置的custom傳出的index為0, 第4個傳出的位置為1
-  /// 例如當sort為以下時,
-  /// this.componentSort = const [
-  ///     ChartComponent.main,
-  ///     ChartComponent.custom, // 0
-  ///     ChartComponent.dragBar,
-  ///     ChartComponent.volume,
-  ///     ChartComponent.custom, // 1
-  ///     ChartComponent.indicator,
-  ///     ChartComponent.timeline,
-  /// ],
-  ///
   final ChartLayoutBuilder layoutBuilder;
 
-  /// 標記列表
-  final List<MarkerData>? markers;
+  /// 初始標記列表
+  final List<MarkerData>? initMarkers;
 
-  /// 圖表資料的時間週期(帶入此值才可以正常顯示[markers])
+  /// 初始的標記模式
+  final MarkerMode initMarkerMode;
+
+  /// marker編輯模式的目標
+  /// 若初始的marker mode為[MarkerMode.edit], 則需帶入此值
+  final String? initMarkerEditId;
+
+  /// 初始新增marker時預設的type
+  /// 當初始的marker mode為[MarkerMode.add]有效
+  final MarkerType initMarkerTypeIfAdd;
+
+  /// 圖表資料的時間週期(帶入此值才可以正常顯示[initMarkers])
   final Duration? dataPeriod;
+
+  /// 當有Marker新增時的回調
+  final void Function(MarkerData marker)? onMarkerAdd;
+
+  /// 當Marker列表有更新時回調
+  final void Function(List<MarkerData> markers)? onMarkerUpdate;
 
   const KLineChart({
     Key? key,
@@ -232,16 +232,15 @@ class KLineChart extends StatefulWidget {
     this.priceTagBuilder,
     this.longPressVibrate = true,
     this.dragBarBuilder,
-    // this.componentSort = const [
-    //   ChartComponent.volume,
-    //   ChartComponent.main,
-    //   ChartComponent.indicator,
-    //   ChartComponent.timeline,
-    // ],
     this.layoutBuilder = _defaultLayoutBuilder,
     this.dragBar = true,
-    this.markers,
+    this.initMarkers,
+    this.initMarkerMode = MarkerMode.view,
+    this.initMarkerEditId,
+    this.initMarkerTypeIfAdd = MarkerType.trendLine,
     this.dataPeriod,
+    this.onMarkerAdd,
+    this.onMarkerUpdate,
   }) : super(key: key);
 
   /// 預設x軸時間格式化
@@ -331,6 +330,9 @@ class _KLineChartState extends State<KLineChart>
 
   final mainChartKey = GlobalKey();
   final totalKey = GlobalKey();
+
+  /// Marker控制器
+  final markerController = MarkerController();
 
   @override
   void initState() {
@@ -551,7 +553,7 @@ class _KLineChartState extends State<KLineChart>
           _tooltip(context),
 
           // 標記
-          // _mainMarker(),
+          _mainMarker(),
 
           // 高度比例拖曳bar
           _heightRatioDragBar(),
@@ -590,8 +592,8 @@ class _KLineChartState extends State<KLineChart>
             size: Size(width, height),
             painter: MainPainterImpl(
               dataViewer: dataViewer,
-              chartPositionGetter:
-                  (rightSpace, isNewerDisplay, priceToY, priceToYWithClamp) {
+              chartPositionGetter: (rightSpace, isNewerDisplay, priceToY,
+                  priceToYWithClamp, realYToPrice) {
                 final position = PricePosition(
                   canvasWidth: chartGesture.drawContentInfo!.canvasWidth,
                   rightSpace: rightSpace,
@@ -599,6 +601,7 @@ class _KLineChartState extends State<KLineChart>
                   priceToYWithClamp: priceToYWithClamp,
                   lastPrice: realTimePrice,
                   isNewerDisplay: isNewerDisplay,
+                  realYToPrice: realYToPrice,
                 );
                 _pricePositionStreamController.add(position);
               },
@@ -667,20 +670,26 @@ class _KLineChartState extends State<KLineChart>
                 widget.dataPeriod != null) {
               final position = snapshot.data!;
 
-              // print('繪製目標方塊: $mainRect => ${mainRect.width}');
               return Positioned(
                 top: mainRect.top,
                 left: mainRect.left,
                 child: RepaintBoundary(
-                  child: CustomPaint(
-                    size: Size(mainRect.width, mainRect.height),
-                    painter: ChartMarkerPainter(
-                      markers: widget.markers ?? [],
-                      painterValueInfo: painterValueInfo,
-                      pricePosition: position,
-                      period: widget.dataPeriod!,
-                      priceFormatter: widget.priceFormatter,
-                    ),
+                  child: ChartMarker(
+                    width: mainRect.width -
+                        widget.chartUiStyle.sizeSetting.rightSpace,
+                    height: mainRect.height,
+                    chartGesture: chartGesture,
+                    initMarkers: widget.initMarkers ?? [],
+                    painterValueInfo: painterValueInfo,
+                    position: position,
+                    dataPeriod: widget.dataPeriod!,
+                    priceFormatter: widget.priceFormatter,
+                    initMode: widget.initMarkerMode,
+                    initMarkerTypeIfAdd: widget.initMarkerTypeIfAdd,
+                    initEditId: widget.initMarkerEditId,
+                    controller: markerController,
+                    onMarkerAdd: widget.onMarkerAdd,
+                    onMarkerUpdate: widget.onMarkerUpdate,
                   ),
                 ),
               );
@@ -900,38 +909,25 @@ class _KLineChartState extends State<KLineChart>
   Future<void> scrollToRight({bool animated = true}) {
     return chartGesture.scrollToRight(animated: animated);
   }
-}
 
-// extension ChartComponentSort on List<ChartComponent> {
-//   bool get canDragBarShow {
-//     final index = indexOf(ChartComponent.dragBar);
-//     if (index != -1) {
-//       final prevIndex = index - 1;
-//       final nextIndex = index + 1;
-//       final prevE = prevIndex >= 0 ? this[prevIndex] : null;
-//       final nextE = nextIndex < length ? this[nextIndex] : null;
-//       final isPrevMain = prevE == ChartComponent.main;
-//       final isNextMain = nextE == ChartComponent.main;
-//
-//       final isPrevSub =
-//           prevE == ChartComponent.volume || prevE == ChartComponent.indicator;
-//       final isNextSub =
-//           nextE == ChartComponent.volume || nextE == ChartComponent.indicator;
-//
-//       return (isPrevMain && isNextSub) || (isPrevSub && isNextMain);
-//     }
-//     return false;
-//   }
-//
-//   bool get isDragBarUnderMain {
-//     final index = indexOf(ChartComponent.dragBar);
-//     if (index != -1) {
-//       final prevIndex = index - 1;
-//       final prevE = prevIndex >= 0 ? this[prevIndex] : null;
-//       final isPrevMain = prevE == ChartComponent.main;
-//
-//       return isPrevMain;
-//     }
-//     return false;
-//   }
-// }
+  /// 設定Marker模式
+  /// [editId] - 編輯的marker id, 若設定的mode是[MarkerMode.edit]則需要帶入
+  /// [markerTypeIfAdd] - 設定當模式為新增時, 默認新增的類型, 可空, 因為原本就有預設類型
+  void setMarkerMode(
+    MarkerMode mode, {
+    String? editId,
+    MarkerType? markerTypeIfAdd,
+  }) {
+    markerController.setMarkerMode(
+      mode,
+      editId: editId,
+      markerTypeIfAdd: markerTypeIfAdd,
+    );
+  }
+
+  /// 設定marker資料列表
+  /// [markers] - marker資料列表
+  void setMarkers(List<MarkerData> markers) {
+    markerController.setMarkers(markers);
+  }
+}

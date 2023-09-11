@@ -1,72 +1,100 @@
 import 'package:flutter/material.dart';
-import 'package:mx_chart/src/ui/marker/chart_marker_painter.dart';
+
+import '../painter.dart';
 
 /// 矩形
 extension RectangleMarker on ChartMarkerPainter {
   /// 矩形
-  Path? drawRectangle(Canvas canvas, Size size, MarkerData data) {
-    // 取得兩個點
-    final point1 = data.positions[0];
-    final point2 = data.positions[1];
+  void drawRectangle(Canvas canvas, Size size, MarkerPath marker) {
+    final data = marker.data;
 
-    // 取得這兩個點的座標位置
-    final x1 = painterValueInfo.timeToDisplayX(
-          point1.dateTime,
-          percent: point1.xRate,
-        ) ??
-        painterValueInfo.estimateTimeToDisplayX(
-          point1.dateTime,
-          period: period,
-          percent: point1.xRate,
-        );
+    // 是否編輯中
+    final isEdit = isMarkerEdit(data);
 
-    final x2 = painterValueInfo.timeToDisplayX(
-          point2.dateTime,
-          percent: point2.xRate,
-        ) ??
-        painterValueInfo.estimateTimeToDisplayX(
-          point2.dateTime,
-          period: period,
-          percent: point2.xRate,
-        );
+    // 偏移值
+    final offset = getMarkerOffset(data);
 
-    // 只要有一個點是null, 就不繪製
-    if (x1 == null || x2 == null) {
-      return null;
+    // 偏移值的矩陣
+    // final offsetMatrix4 = Matrix4.translationValues(offset.dx, offset.dy, 0);
+
+    final pos1 = data.positions.safeGet(0);
+    final pos2 = data.positions.safeGet(1);
+
+    if (pos1 == null || pos2 == null) {
+      // 檢查是否為編輯模式
+      if (isEdit) {
+        // 是編輯模式, 允許
+      } else {
+        // 不是編輯模式, 不允許
+        marker.path = null;
+        marker.anchorPoint = [];
+        return;
+      }
     }
 
-    // 取得真實的x軸位置
-    final realX1 = painterValueInfo.displayXToRealX(x1);
-    final realX2 = painterValueInfo.displayXToRealX(x2);
+    final x1 = pos1?.safeGetX(data, painterValueInfo, period);
+    final x2 = pos2?.safeGetX(data, painterValueInfo, period);
 
-    // 轉化為真實的y軸位置
-    final realY1 = pricePosition.priceToY(point1.price);
-    final realY2 = pricePosition.priceToY(point2.price);
+    final canPoint1Draw = pos1 != null && x1 != null;
+    final canPoint2Draw = pos2 != null && x2 != null;
 
-    // 生成需要繪製的路徑
-    final path = Path()
-      ..moveTo(realX1, realY1)
-      ..lineTo(realX2, realY1)
-      ..lineTo(realX2, realY2)
-      ..lineTo(realX1, realY2)
-      ..close();
+    Offset? realPoint1, realPoint2;
 
-    // 生成繪製畫筆
-    final paint = Paint()
-      ..color = data.color.withOpacity(0.5)
-      ..strokeWidth = data.strokeWidth
-      ..style = PaintingStyle.fill;
+    if (canPoint1Draw) {
+      // 取得真實的點位
+      realPoint1 = Offset(
+            painterValueInfo.displayXToRealX(x1),
+            pricePosition.priceToY(pos1.price),
+          ) +
+          offset;
+    }
 
-    // 先畫背景
-    canvas.drawPath(path, paint);
+    if (canPoint2Draw) {
+      // 取得真實的點位
+      realPoint2 = Offset(
+            painterValueInfo.displayXToRealX(x2),
+            pricePosition.priceToY(pos2.price),
+          ) +
+          offset;
+    }
 
-    // 畫路徑
-    paint
-      ..color = data.color
-      ..strokeWidth = data.strokeWidth
-      ..style = PaintingStyle.stroke;
-    canvas.drawPath(path, paint);
+    Path? path;
 
-    return path;
+    if (realPoint1 != null && realPoint2 != null) {
+      // 生成需要繪製的路徑
+      path = Path()
+        ..moveTo(realPoint1.dx, realPoint1.dy)
+        ..lineTo(realPoint2.dx, realPoint1.dy)
+        ..lineTo(realPoint2.dx, realPoint2.dy)
+        ..lineTo(realPoint1.dx, realPoint2.dy)
+        ..close();
+
+      // 生成繪製畫筆
+      final paint = Paint()
+        ..color = data.color.withOpacity(0.5)
+        ..strokeWidth = data.strokeWidth
+        ..style = PaintingStyle.fill;
+
+      // 先畫背景
+      canvas.drawPath(path, paint);
+
+      // 畫路徑
+      paint
+        ..color = data.color
+        ..strokeWidth = data.strokeWidth
+        ..style = PaintingStyle.stroke;
+
+      drawPath(path: path, canvas: canvas, marker: marker, paint: paint);
+    }
+
+    final anchorPointPath = drawAnchorPath(
+      data: data,
+      isEdit: isEdit,
+      canvas: canvas,
+      points: [realPoint1, realPoint2].whereType<Offset>(),
+    );
+
+    marker.path = path;
+    marker.anchorPoint = anchorPointPath;
   }
 }

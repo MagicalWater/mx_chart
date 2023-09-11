@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
 import '../chart_gesture.dart';
@@ -10,7 +9,7 @@ import '../gestures/gesture.dart';
 mixin GestureDistributionMixin on ChartGesture
     implements TapGesture, DragGesture, LongPressGesture, ScaleGesture {
   /// 目前正在起作用的觸摸
-  final activePointer = <int, _PointerPosition>{};
+  final activePointer = <int, List<PointerPosition>>{};
 
   /// 觸摸到變成長按的檢測時間
   final _longPressDetect = const Duration(milliseconds: 500);
@@ -42,11 +41,11 @@ mixin GestureDistributionMixin on ChartGesture
   Duration inheritLongPressDelay = const Duration(milliseconds: 100);
 
   /// 取得當前縮放的全局焦點
-  _PointerPosition get _currentScaleFocalPoint {
+  PointerPosition get _currentScaleFocalPoint {
     final pointers = activePointer.values.toList();
-    final point1 = pointers[0];
-    final point2 = pointers[1];
-    return _PointerPosition(
+    final point1 = pointers[0].last;
+    final point2 = pointers[1].last;
+    return PointerPosition(
       global: (point1.global + point2.global) / 2,
       local: (point1.local + point2.local) / 2,
     );
@@ -55,16 +54,16 @@ mixin GestureDistributionMixin on ChartGesture
   /// 取得當前兩指距離
   double get _currentTouchDistance {
     final pointers = activePointer.values.toList();
-    final point1 = pointers[0];
-    final point2 = pointers[1];
+    final point1 = pointers[0].last;
+    final point2 = pointers[1].last;
     return (point2.global - point1.global).distance;
   }
 
   /// 取得當前縮放的倍數
   double get _currentScale {
     final pointers = activePointer.values.toList();
-    final point1 = pointers[0];
-    final point2 = pointers[1];
+    final point1 = pointers[0].last;
+    final point2 = pointers[1].last;
     return (point2.global - point1.global).distance / _initScaleDistance;
   }
 
@@ -78,11 +77,12 @@ mixin GestureDistributionMixin on ChartGesture
       } else if (isLongPress) {
         return TouchStatus.longPress;
       } else {
+        return TouchStatus.none;
         // 正常狀態不會在此
-        if (kDebugMode) {
-          print('GestureDistributionMixin: 觸摸狀態異常');
-        }
-        throw 'GestureDistributionMixin: 觸摸狀態異常';
+        // if (kDebugMode) {
+        //   print('GestureDistributionMixin: 觸摸狀態異常');
+        // }
+        // throw 'GestureDistributionMixin: 觸摸狀態異常';
       }
     } else {
       return TouchStatus.none;
@@ -93,7 +93,7 @@ mixin GestureDistributionMixin on ChartGesture
   void onTouchDown(int pointer, DragStartDetails details) {
     if (isDrag) {
       // 正在拖拉中, 變更為開始縮放
-      activePointer[pointer] = _PointerPosition.fromDragStart(details);
+      activePointer[pointer] = [PointerPosition.fromDragStart(details)];
 
       isDrag = false;
       isScale = true;
@@ -108,28 +108,34 @@ mixin GestureDistributionMixin on ChartGesture
         localFocalPoint: scalePosition.local,
         pointerCount: 2,
       ));
+
+      _sendPointerEvent(pointer, PointerStatus.down);
     } else if (isScale || isLongPress) {
       // 正在縮放/長按中, 禁止其餘觸摸
       if (keepLongPressWhenTouchUp && activePointer.isEmpty) {
         // 表示有需要繼承的長按手勢
         _isNowInheritLongPress = true;
-        activePointer[pointer] = _PointerPosition.fromDragStart(details);
+        activePointer[pointer] = [PointerPosition.fromDragStart(details)];
         _initDragPoint = details.globalPosition;
         _inheritLongPressStartTime = DateTime.now();
-      }
 
+        _sendPointerEvent(pointer, PointerStatus.down);
+      }
       return;
     } else {
       // 目前無任何手勢, 啟動拖拉
-      activePointer[pointer] = _PointerPosition.fromDragStart(details);
+      activePointer[pointer] = [PointerPosition.fromDragStart(details)];
       isDrag = true;
 
       _initDragPoint = details.globalPosition;
 
       // 啟動長按倒數
-      _startLongPressTimer();
+      if (!isLongPressDisable) {
+        _startLongPressTimer();
+      }
 
       onDragStart(details);
+      _sendPointerEvent(pointer, PointerStatus.down);
     }
   }
 
@@ -140,7 +146,7 @@ mixin GestureDistributionMixin on ChartGesture
     }
     if (isDrag) {
       // 當前為拖拉狀態, 則發出拖拉更新
-      activePointer[pointer] = _PointerPosition.fromDragUpdate(details);
+      activePointer[pointer]!.add(PointerPosition.fromDragUpdate(details));
 
       // 檢測是否需要取消長按倒數
       if (_longPressTimer != null) {
@@ -152,6 +158,7 @@ mixin GestureDistributionMixin on ChartGesture
       }
 
       onDragUpdate(details);
+      _sendPointerEvent(pointer, PointerStatus.move);
     } else if (isLongPress) {
       // 當前為長按狀態, 發出長按拖拉更新
       if (_isNowInheritLongPress &&
@@ -160,18 +167,19 @@ mixin GestureDistributionMixin on ChartGesture
         return;
       }
 
-      final prePointer = activePointer[pointer]!;
-      activePointer[pointer] = _PointerPosition.fromDragUpdate(details);
+      final prePointer = activePointer[pointer]!.last;
+      activePointer[pointer]!.add(PointerPosition.fromDragUpdate(details));
       onLongPressMoveUpdate(LongPressMoveUpdateDetails(
         globalPosition: details.globalPosition,
         localPosition: details.localPosition,
         offsetFromOrigin: details.globalPosition - prePointer.global,
         localOffsetFromOrigin: details.localPosition - prePointer.local,
       ));
+      _sendPointerEvent(pointer, PointerStatus.move);
     } else if (isScale) {
       // 當前為縮放狀態, 發出縮放更新
       final preScalePosition = _currentScaleFocalPoint;
-      activePointer[pointer] = _PointerPosition.fromDragUpdate(details);
+      activePointer[pointer]!.add(PointerPosition.fromDragUpdate(details));
       final scalePosition = _currentScaleFocalPoint;
       final scale = _currentScale;
       onScaleUpdate(ScaleUpdateDetails(
@@ -183,6 +191,7 @@ mixin GestureDistributionMixin on ChartGesture
         pointerCount: 2,
         focalPointDelta: scalePosition.global - preScalePosition.global,
       ));
+      _sendPointerEvent(pointer, PointerStatus.move);
     }
   }
 
@@ -196,7 +205,7 @@ mixin GestureDistributionMixin on ChartGesture
       _cancelLongPressTimer();
       onDragEnd(details);
     } else if (isLongPress) {
-      final position = activePointer[pointer]!;
+      final position = activePointer[pointer]!.last;
 
       // 檢查此長按是否為繼承的行為
       if (_isNowInheritLongPress) {
@@ -236,7 +245,32 @@ mixin GestureDistributionMixin on ChartGesture
         pointerCount: 2,
       ));
     }
+    _sendPointerEvent(pointer, PointerStatus.up);
+    _removePointerListener(pointer);
     activePointer.remove(pointer);
+  }
+
+  /// 發送pointer的資訊更新通知事件
+  void _sendPointerEvent(int pointer, PointerStatus pointerStatus) {
+    final history = activePointer[pointer];
+    if (history == null || history.isEmpty) {
+      return;
+    }
+
+    final firstEvent = history.first;
+    final lastEvent = history.last;
+
+    final info = PointerInfo(
+      touchStatus: getTouchPointerStatus(pointer),
+      pointerStatus: pointerStatus,
+      startPosition: firstEvent,
+      lastPosition: lastEvent,
+      dragOffset: lastEvent.global - firstEvent.global,
+    );
+
+    pointerListeners[pointer]?.forEach((element) {
+      element(info);
+    });
   }
 
   /// 取消觸摸(當觸摸後沒有任何位移, 則會呼叫此)
@@ -265,7 +299,25 @@ mixin GestureDistributionMixin on ChartGesture
       isScale = false;
       onScaleCancel();
     }
+    _sendPointerEvent(pointer, PointerStatus.up);
+    _removePointerListener(pointer);
     activePointer.remove(pointer);
+  }
+
+  /// 設置長案是否禁用
+  @override
+  void setLongPress(bool enable) {
+    if (enable) {
+      isLongPressDisable = false;
+    } else {
+      isLongPress = false;
+      isLongPressDisable = true;
+      _isNowInheritLongPress = false;
+      onLongPressCancel();
+
+      // 因為長案被禁止了, 所以若當前有長案或者保留長案的設定都要清除
+      _cancelLongPressTimer();
+    }
   }
 
   void _startLongPressTimer() {
@@ -279,12 +331,12 @@ mixin GestureDistributionMixin on ChartGesture
         // print('長按為空, 取消');
         return;
       }
-      final position = entrys.first;
+      final position = entrys.first.value.last;
       isDrag = false;
       isLongPress = true;
       onLongPressStart(LongPressStartDetails(
-        globalPosition: position.value.global,
-        localPosition: position.value.local,
+        globalPosition: position.global,
+        localPosition: position.local,
       ));
     });
   }
@@ -295,19 +347,29 @@ mixin GestureDistributionMixin on ChartGesture
     }
     _longPressTimer = null;
   }
+
+  /// 移除某個pointer全部的監聽
+  void _removePointerListener(int pointer) {
+    pointerListeners.remove(pointer);
+  }
 }
 
-class _PointerPosition {
+class PointerPosition {
   final Offset global;
   final Offset local;
 
-  _PointerPosition({required this.global, required this.local});
+  PointerPosition({required this.global, required this.local});
 
-  _PointerPosition.fromDragStart(DragStartDetails details)
+  PointerPosition.fromDragStart(DragStartDetails details)
       : global = details.globalPosition,
         local = details.localPosition;
 
-  _PointerPosition.fromDragUpdate(DragUpdateDetails details)
+  PointerPosition.fromDragUpdate(DragUpdateDetails details)
       : global = details.globalPosition,
         local = details.localPosition;
+
+  @override
+  String toString() {
+    return 'PointerPosition(global: $global, local: $local)';
+  }
 }

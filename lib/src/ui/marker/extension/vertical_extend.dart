@@ -1,50 +1,90 @@
 import 'package:flutter/material.dart';
-import 'package:mx_chart/src/ui/marker/chart_marker_painter.dart';
+
+import '../painter.dart';
+import '../reversible_path.dart';
 
 /// 垂直延伸
 extension VerticalExtendMarker on ChartMarkerPainter {
   /// 垂直延伸
-  Path? drawVerticalExtend(Canvas canvas, Size size, MarkerData data) {
-    // 取得兩個點
-    final point1 = data.positions[0];
-    final point2 = data.positions[1];
+  void drawVerticalExtend(Canvas canvas, Size size, MarkerPath marker) {
+    final data = marker.data;
 
-    // x將以第一個點為主
-    final x1 = painterValueInfo.timeToDisplayX(
-          point1.dateTime,
-          percent: point1.xRate,
-        ) ??
-        painterValueInfo.estimateTimeToDisplayX(
-          point1.dateTime,
-          period: period,
-          percent: point1.xRate,
-        );
+    // 是否編輯中
+    final isEdit = isMarkerEdit(data);
 
-    // 點是null, 就不繪製
-    if (x1 == null) {
-      return null;
+    final pos1 = data.positions.safeGet(0);
+    final pos2 = data.positions.safeGet(1);
+
+    // 偏移值
+    final offset = getMarkerOffset(data);
+
+    if (pos1 == null || pos2 == null) {
+      // 檢查是否為編輯模式
+      if (isEdit) {
+        // 是編輯模式, 允許
+      } else {
+        // 不是編輯模式, 不允許
+        marker.path = null;
+        marker.anchorPoint = [];
+        return;
+      }
     }
 
-    // 取得真實的x軸位置
-    final realStartX = painterValueInfo.displayXToRealX(x1);
+    // x 將以第一個點為主
+    final x1 = pos1?.safeGetX(data, painterValueInfo, period);
 
-    final realStartY = pricePosition.priceToY(point1.price);
-    final realEndY = pricePosition.priceToY(point2.price);
+    final canPoint1Draw = pos1 != null && x1 != null;
+    final canPoint2Draw = pos2 != null;
 
-    // 生成需要繪製的路徑
-    final path = Path()
-      ..moveTo(realStartX, realStartY)
-      ..lineTo(realStartX, realEndY);
+    Offset? realPoint1, realPoint2;
 
-    // 生成繪製畫筆
-    final paint = Paint()
-      ..color = data.color
-      ..strokeWidth = data.strokeWidth
-      ..style = PaintingStyle.stroke;
+    double? realX, y1;
+    if (canPoint1Draw) {
+      y1 = pricePosition.priceToY(pos1.price);
+      realX = painterValueInfo.displayXToRealX(x1);
 
-    // 繪製
-    canvas.drawPath(path, paint);
+      // 取得真實的點位
+      realPoint1 = Offset(realX, y1) + offset;
+    }
 
-    return path;
+    if (canPoint1Draw && canPoint2Draw) {
+      final y2 = pricePosition.priceToY(pos2.price);
+      realPoint2 = Offset(realX!, y2) + offset;
+    }
+
+    // 擴展點擊範圍的path
+    Path? extendPath;
+
+    if (realPoint1 != null && realPoint2 != null) {
+      // 生成需要繪製的路徑
+      final path = ReversiblePath()
+        ..moveTo(realPoint1.dx, realPoint1.dy)
+        ..lineTo(realPoint2.dx, realPoint2.dy);
+
+      extendPath = path.shift(Offset(-extendPathClickRadius, 0));
+      final downPath = path.reverse().shift(Offset(extendPathClickRadius, 0));
+
+      extendPath.extendWithPath(downPath, Offset.zero);
+      extendPath.moveTo(realPoint1.dx, realPoint1.dy);
+
+      // 生成繪製畫筆
+      final paint = Paint()
+        ..color = data.color
+        ..strokeWidth = data.strokeWidth
+        ..style = PaintingStyle.stroke;
+
+      // 繪製
+      drawPath(path: path, canvas: canvas, marker: marker, paint: paint);
+    }
+
+    final anchorPointPath = drawAnchorPath(
+      data: data,
+      isEdit: isEdit,
+      canvas: canvas,
+      points: [realPoint1, realPoint2].whereType<Offset>(),
+    );
+
+    marker.path = extendPath;
+    marker.anchorPoint = anchorPointPath;
   }
 }

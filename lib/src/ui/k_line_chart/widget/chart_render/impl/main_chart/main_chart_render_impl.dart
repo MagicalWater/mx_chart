@@ -253,6 +253,7 @@ class MainChartRenderImpl extends MainChartRender
       isNewerDisplay,
       valueToRealY,
       valueToRealYWithClamp,
+      realYToValue,
     );
   }
 

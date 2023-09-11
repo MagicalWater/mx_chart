@@ -7,4 +7,4 @@ export 'ray.dart';
 export 'rectangle.dart';
 export 'trend_line.dart';
 export 'vertical_extend.dart';
-export 'wave_line.dart';
+export 'wave_line3.dart';

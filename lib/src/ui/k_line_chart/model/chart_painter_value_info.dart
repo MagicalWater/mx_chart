@@ -106,8 +106,8 @@ class ChartPainterValueInfo {
     // 取得視圖中第一筆以及最後一筆顯示的資料
     _startDisplayX = realXToDisplayX(0);
     _endDisplayX = realXToDisplayX(_canvasWidth - sizeSetting.rightSpace);
-    _startDataIndex = displayXToDataIndex(_startDisplayX);
-    _endDataIndex = displayXToDataIndex(_endDisplayX);
+    _startDataIndex = displayXToDataIndexWithClamp(_startDisplayX);
+    _endDataIndex = displayXToDataIndexWithClamp(_endDisplayX);
 
     // print('開始: ${realXToDisplayX(0)}, 結束: ${realXToDisplayX(size.width)}');
 
@@ -232,9 +232,9 @@ class ChartPainterValueInfo {
   }
 
   /// 將畫布繪製的x軸座標轉換為data的索引值
-  int realXToDataIndex(double realX) {
+  int realXToDataIndexWithClamp(double realX) {
     final displayX = realXToDisplayX(realX);
-    return displayXToDataIndex(displayX);
+    return displayXToDataIndexWithClamp(displayX);
   }
 
   /// 將data的索引值轉換為顯示的x軸座標(默認為中間點)
@@ -248,14 +248,38 @@ class ChartPainterValueInfo {
   }
 
   /// 將顯示中的x轉化為資料的index
-  int displayXToDataIndex(double displayX) {
+  /// index會包含在資料列表index內, 若超過或者小於都會進行Clamp
+  /// [percentCallback] - displayX在dataIndex的多少百分比位置
+  int displayXToDataIndexWithClamp(
+    double displayX, {
+    void Function(double percent)? percentCallback,
+  }) {
+    final dataIndex = displayXToDataIndex(
+      displayX,
+      percentCallback: percentCallback,
+    );
+    if (dataIndex < 0) {
+      return 0;
+    } else if (dataIndex >= datas.length) {
+      return datas.length - 1;
+    } else {
+      return dataIndex;
+    }
+  }
+
+  /// 將顯示中的x轉化為資料的index, 但這個index可能會超過或低於當前擁有的資料index
+  /// [percentCallback] - displayX在dataIndex的多少百分比位置
+  int displayXToDataIndex(
+    double displayX, {
+    void Function(double percent)? percentCallback,
+  }) {
     final dataWidth = _sizeSetting.dataWidth * chartGesture.scaleX;
     final leftPoint = -(_totalDataWidth! + _sizeSetting.rightSpace);
     final dataIndex = (displayX - leftPoint) ~/ dataWidth;
-    if (dataIndex >= _datas.length) {
-      return _datas.length - 1;
-    } else if (dataIndex < 0) {
-      return 0;
+    if (percentCallback != null) {
+      final remainWidth = (displayX - leftPoint) % dataWidth;
+      final percent = remainWidth / dataWidth;
+      percentCallback(percent);
     }
     return dataIndex;
   }
@@ -279,7 +303,7 @@ class ChartPainterValueInfo {
       return null;
     }
     final displayX = realXToDisplayX(chartGesture.longPressX);
-    var index = displayXToDataIndex(displayX);
+    var index = displayXToDataIndexWithClamp(displayX);
     index = index.clamp(_startDataIndex, _endDataIndex);
     _longPressDataIndex = index >= _datas.length ? _datas.length - 1 : index;
     return _longPressDataIndex;
