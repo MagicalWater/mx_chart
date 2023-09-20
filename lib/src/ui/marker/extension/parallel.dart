@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../painter.dart';
@@ -22,9 +24,9 @@ extension ParallelMarker on ChartMarkerPainter {
       // 檢查是否為編輯模式
       if (isEdit) {
         // 是編輯模式, 允許
-        print('編輯模式');
+        // print('編輯模式');
       } else {
-        print('不是編輯模式');
+        // print('不是編輯模式');
         // 不是編輯模式, 不允許
         marker.path = null;
         marker.anchorPoint = [];
@@ -42,7 +44,8 @@ extension ParallelMarker on ChartMarkerPainter {
 
     if (canPoint1Draw && canPoint2Draw && canPoint3Draw) {
       // 點3的x不可以超過點1, 點2
-      x3 = x3.clamp(x1, x2);
+
+      x3 = x3.clamp(min(x1, x2), max(x1, x2));
     }
 
     // realPoint1,2 => 底部基準點
@@ -77,7 +80,6 @@ extension ParallelMarker on ChartMarkerPainter {
     }
 
     if (canPoint3Draw) {
-
       y3 = pricePosition.priceToY(pos3.price);
       realX3 = painterValueInfo.displayXToRealX(x3!);
       // 取得真實的點位
@@ -85,7 +87,6 @@ extension ParallelMarker on ChartMarkerPainter {
     }
 
     if (canPoint1Draw && canPoint2Draw && canPoint3Draw) {
-
       // 取得斜率
       slope = (y2! - y1!) / (x2 - x1);
       // 取得截距

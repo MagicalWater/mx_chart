@@ -59,6 +59,68 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
+
+/// 虛線設定面板詳細資訊
+class ColorPanelDetail extends StatelessWidget {
+  /// 虛線設定列表
+  final List<Color> colors;
+
+  /// 單個顏色區塊的高度
+  final double itemWidth;
+
+  /// 單個顏色區塊的高度
+  final double itemHeight;
+
+  /// 最終選擇的顏色
+  final ValueChanged<Color> onChanged;
+
+  const ColorPanelDetail({
+    Key? key,
+    required this.itemWidth,
+    required this.itemHeight,
+    required this.colors,
+    required this.onChanged,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 2,
+        horizontal: 10,
+      ),
+      // child: Column(
+      //   children: [
+      //     ...colors.map((e) {
+      //       return GestureDetector(
+      //         onTap: () => onChanged(e),
+      //         child: SizedBox(
+      //           width: itemWidth,
+      //           height: itemHeight,
+      //           child: Container(color: e),
+      //         ),
+      //       );
+      //     }).toList(),
+      //   ],
+      // ),
+      child: SliverGrid.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          childAspectRatio: itemWidth / itemHeight,
+        ),
+        itemCount: colors.length,
+        itemBuilder: (BuildContext context, int index) {
+          return SizedBox(
+            width: itemWidth,
+            height: itemHeight,
+            child: Container(color: colors[index]),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class CustomPathPainter extends CustomPainter {
   final ValueChanged<Path>? onPathReady;
 

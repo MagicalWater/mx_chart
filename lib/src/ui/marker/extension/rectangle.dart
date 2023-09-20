@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../painter.dart';
@@ -58,16 +60,29 @@ extension RectangleMarker on ChartMarkerPainter {
           offset;
     }
 
-    Path? path;
+    Path? extendPath;
 
     if (realPoint1 != null && realPoint2 != null) {
       // 生成需要繪製的路徑
-      path = Path()
+      final path = Path()
         ..moveTo(realPoint1.dx, realPoint1.dy)
         ..lineTo(realPoint2.dx, realPoint1.dy)
         ..lineTo(realPoint2.dx, realPoint2.dy)
         ..lineTo(realPoint1.dx, realPoint2.dy)
         ..close();
+
+      // 擴大點擊範圍
+      final extendRect = Rect.fromPoints(
+        Offset(
+          min(realPoint1.dx, realPoint2.dx) - extendPathClickRadius,
+          min(realPoint1.dy, realPoint2.dy) - extendPathClickRadius,
+        ),
+        Offset(
+          max(realPoint1.dx, realPoint2.dx) + extendPathClickRadius,
+          max(realPoint1.dy, realPoint2.dy) + extendPathClickRadius,
+        ),
+      );
+      extendPath = Path()..addRect(extendRect);
 
       // 生成繪製畫筆
       final paint = Paint()
@@ -94,7 +109,7 @@ extension RectangleMarker on ChartMarkerPainter {
       points: [realPoint1, realPoint2].whereType<Offset>(),
     );
 
-    marker.path = path;
+    marker.path = extendPath;
     marker.anchorPoint = anchorPointPath;
   }
 }

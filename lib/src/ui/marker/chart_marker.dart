@@ -33,8 +33,20 @@ class ChartMarker extends StatefulWidget {
   /// 當新增路徑時預設的type
   final MarkerType initMarkerTypeIfAdd;
 
+  /// Marker處於新增模式時的進度
+  /// [type] - 當前新增的類型
+  /// [point] - 當前已經新增的點位數量
+  /// [totalPoint] - 總共需要新增的點位數量
+  final void Function(MarkerType type, int point, int totalPoint)?
+      onMarkerAddProgress;
+
   /// 當有Marker新增時的回調
+  /// 有新增時會回調此方法, 同時回調 onMarkerUpdate
   final void Function(MarkerData marker)? onMarkerAdd;
+
+  /// 當有Marker刪除時的回調
+  /// 有刪除時會回調此方法, 同時回調 onMarkerUpdate
+  final void Function(MarkerData marker)? onMarkerRemove;
 
   /// 當Marker列表有更新時回調
   final void Function(List<MarkerData> markers)? onMarkerUpdate;
@@ -56,6 +68,8 @@ class ChartMarker extends StatefulWidget {
     required this.initMarkerTypeIfAdd,
     this.controller,
     this.onMarkerAdd,
+    this.onMarkerAddProgress,
+    this.onMarkerRemove,
     this.onMarkerUpdate,
     this.initEditId,
   }) : super(key: key);
@@ -98,6 +112,15 @@ class _ChartMarkerState extends State<ChartMarker> {
         (widget.initMarkers ?? []).map((e) => MarkerPath(data: e)).toList();
     currentMode = widget.initMode;
     currentMarkerTypeIfAdd = widget.initMarkerTypeIfAdd;
+
+    if (currentMode == MarkerMode.add) {
+      widget.onMarkerAddProgress?.call(
+        currentMarkerTypeIfAdd,
+        0,
+        currentMarkerTypeIfAdd.needPoint,
+      );
+    }
+
     currentEditId = widget.initEditId;
     widget.controller?._bind = this;
 
@@ -172,11 +195,26 @@ class _ChartMarkerState extends State<ChartMarker> {
               marker: newCreateData ?? oldEditData,
               onDrag: (offset) {},
               onChanged: (marker) {
-                if (newCreateData != null) {
-                  newCreateData!.changeMarkerData(marker);
+                if (marker == null) {
+                  // 刪除標記
+                  final value = newCreateData ?? oldEditData!;
+                  currentPaths.remove(value);
+
+                  // 退出編輯模式
+                  currentEditId = null;
+                  oldEditData = null;
+                  currentMode = MarkerMode.editableView;
+
+                  widget.onMarkerRemove?.call(value.data);
                 } else {
-                  oldEditData!.changeMarkerData(marker);
+                  if (newCreateData != null) {
+                    newCreateData!.changeMarkerData(marker);
+                  } else {
+                    oldEditData!.changeMarkerData(marker);
+                  }
                 }
+                widget.onMarkerUpdate
+                    ?.call(currentPaths.map((e) => e.data).toList());
                 setState(() {});
               },
             ),
@@ -475,8 +513,21 @@ class _ChartMarkerState extends State<ChartMarker> {
               currentEditId = newCreateData!.data.id;
               oldEditData = newCreateData;
               currentPaths.add(newCreateData!);
+              widget.onMarkerAddProgress?.call(
+                newCreateData!.data.type,
+                newCreateData!.data.positions.length,
+                newCreateData!.data.type.needPoint,
+              );
               widget.onMarkerAdd?.call(newCreateData!.data);
+              widget.onMarkerUpdate
+                  ?.call(currentPaths.map((e) => e.data).toList());
               newCreateData = null;
+            } else {
+              widget.onMarkerAddProgress?.call(
+                newCreateData!.data.type,
+                newCreateData!.data.positions.length,
+                newCreateData!.data.type.needPoint,
+              );
             }
 
             setState(() {});
@@ -573,6 +624,14 @@ class _ChartMarkerState extends State<ChartMarker> {
           markerOffset.clear();
           // 清除位移目標
           moveTarget = _MoveTarget.none;
+
+          // 將新增狀態回傳給外部
+          widget.onMarkerAddProgress?.call(
+            currentMarkerTypeIfAdd,
+            0,
+            currentMarkerTypeIfAdd.needPoint,
+          );
+
           setState(() {});
         }
         break;
@@ -656,7 +715,19 @@ class _ChartMarkerState extends State<ChartMarker> {
 
   /// 設定marker資料列表
   /// [markers] - marker資料列表
-  void setMarkers(List<MarkerData> markers) {}
+  void setMarkers(List<MarkerData> markers) {
+    // 只有在瀏覽模式或者可編輯瀏覽模式才可以設定marker
+    if (currentMode == MarkerMode.view ||
+        currentMode == MarkerMode.editableView) {
+      currentPaths = markers.map((e) => MarkerPath(data: e)).toList();
+      setState(() {});
+    } else {
+      if (kDebugMode) {
+        print('[ChartMarker] - 只有在瀏覽模式或者可編輯瀏覽模式才可以設定marker');
+      }
+      throw '[ChartMarker] - 只有在瀏覽模式或者可編輯瀏覽模式才可以設定marker';
+    }
+  }
 
   @override
   void dispose() {
@@ -671,10 +742,10 @@ enum _MoveTarget {
   none,
 }
 
-extension _MoveTargetExtension on _MoveTarget {
-  bool get isAnchorPoint => this == _MoveTarget.anchorPoint;
-
-  bool get isPath => this == _MoveTarget.path;
-
-  bool get isNone => this == _MoveTarget.none;
-}
+// extension _MoveTargetExtension on _MoveTarget {
+//   bool get isAnchorPoint => this == _MoveTarget.anchorPoint;
+//
+//   bool get isPath => this == _MoveTarget.path;
+//
+//   bool get isNone => this == _MoveTarget.none;
+// }

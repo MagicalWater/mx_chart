@@ -36,29 +36,62 @@ extension RayMarker on ChartMarkerPainter {
     final canPoint2Draw = pos2 != null && x2 != null;
 
     Offset? realPoint1, realPoint2;
-    Offset? anchorPoint2;
+    Offset? anchorPoint1, anchorPoint2;
 
     // 斜率, 截距
-    double? slope, intercept;
+    double? intercept;
 
     if (canPoint1Draw && canPoint2Draw) {
       final y1 = pricePosition.priceToY(pos1.price);
       final y2 = pricePosition.priceToY(pos2.price);
 
-      // 取得斜率
-      slope = (y2 - y1) / (x2 - x1);
-      // 取得截距
-      intercept = (y1 + offset.dy) - slope * (x1 + offset.dx);
-
-      // 取得真實的點位
       realPoint1 = Offset(
-        painterValueInfo.displayXToRealX(x1),
-        y1,
-      ) + offset;
-      realPoint2 = Offset(
-        canvasRightX,
-        slope * painterValueInfo.realXToDisplayX(canvasRightX) + intercept,
-      );
+            painterValueInfo.displayXToRealX(x1),
+            y1,
+          ) +
+          offset;
+
+      if (x2 > x1) {
+        // 往右的斜線
+        // 取得斜率
+        final slope = (y2 - y1) / (x2 - x1);
+        // 取得截距
+        intercept = (y1 + offset.dy) - slope * (x1 + offset.dx);
+
+        // 取得真實的點位
+        realPoint2 = Offset(
+          canvasRightX,
+          slope * painterValueInfo.realXToDisplayX(canvasRightX) + intercept,
+        );
+      } else if (x2 < x1) {
+        // 往左的斜線
+        // 取得斜率
+        final slope = (y2 - y1) / (x2 - x1);
+        // 取得截距
+        intercept = (y1 + offset.dy) - slope * (x1 + offset.dx);
+
+        realPoint2 = Offset(
+          0.0,
+          slope * painterValueInfo.realXToDisplayX(0.0) + intercept,
+        );
+      } else {
+        // 垂直線
+        if (y1 > y2) {
+          // 往上的垂直線
+          realPoint2 = Offset(realPoint1.dx, 0);
+        } else {
+          // 往下的垂直線
+          realPoint2 = Offset(realPoint1.dy, size.height);
+        }
+      }
+    } else if (canPoint1Draw) {
+      final y1 = pricePosition.priceToY(pos1.price);
+
+      realPoint1 = Offset(
+            painterValueInfo.displayXToRealX(x1),
+            y1,
+          ) +
+          offset;
     }
 
     if (canPoint2Draw) {
@@ -78,8 +111,11 @@ extension RayMarker on ChartMarkerPainter {
         ..moveTo(realPoint1.dx, realPoint1.dy)
         ..lineTo(realPoint2.dx, realPoint2.dy);
 
-      extendPath = path.entity.shift(Offset(0, -extendPathClickRadius));
-      final downPath = path.reverse().shift(Offset(0, extendPathClickRadius));
+      extendPath = path.entity
+          .shift(Offset(extendPathClickRadius, -extendPathClickRadius));
+      final downPath = path
+          .reverse()
+          .shift(Offset(-extendPathClickRadius, extendPathClickRadius));
 
       extendPath.extendWithPath(downPath, Offset.zero);
       extendPath.moveTo(realPoint1.dx, realPoint1.dy);

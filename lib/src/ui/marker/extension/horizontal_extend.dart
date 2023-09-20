@@ -45,6 +45,9 @@ extension HorizontalExtendMarker on ChartMarkerPainter {
       // 取得真實的點位
       realPoint1 = Offset(painterValueInfo.displayXToRealX(x1), y1) + offset;
       realPoint2 = Offset(painterValueInfo.displayXToRealX(x2), y1) + offset;
+    } else if (canPoint1Draw) {
+      final y1 = pricePosition.priceToY(pos1.price);
+      realPoint1 = Offset(painterValueInfo.displayXToRealX(x1), y1) + offset;
     }
 
     // 擴展點擊範圍的path

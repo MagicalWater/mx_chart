@@ -45,7 +45,8 @@ extension HorizontalTradeMarker on ChartMarkerPainter {
       realPoint2 = Offset(canvasRightX, y1 + offset.dy);
 
       if (x1 != null) {
-        anchorPoint1 = Offset(x1, y1) + offset;
+        anchorPoint1 =
+            Offset(painterValueInfo.displayXToRealX(x1), y1) + offset;
       }
     }
 

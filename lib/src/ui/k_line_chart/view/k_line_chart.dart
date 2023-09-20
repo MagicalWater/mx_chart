@@ -200,7 +200,19 @@ class KLineChart extends StatefulWidget {
   final Duration? dataPeriod;
 
   /// 當有Marker新增時的回調
+  /// 有新增時會回調此方法, 同時回調 onMarkerUpdate
   final void Function(MarkerData marker)? onMarkerAdd;
+
+  /// Marker處於新增模式時的進度
+  /// [type] - 當前新增的類型
+  /// [point] - 當前已經新增的點位數量
+  /// [totalPoint] - 總共需要新增的點位數量
+  final void Function(MarkerType type, int point, int totalPoint)?
+  onMarkerAddProgress;
+
+  /// 當有Marker刪除時的回調
+  /// 有刪除時會回調此方法, 同時回調 onMarkerUpdate
+  final void Function(MarkerData marker)? onMarkerRemove;
 
   /// 當Marker列表有更新時回調
   final void Function(List<MarkerData> markers)? onMarkerUpdate;
@@ -240,6 +252,8 @@ class KLineChart extends StatefulWidget {
     this.initMarkerTypeIfAdd = MarkerType.trendLine,
     this.dataPeriod,
     this.onMarkerAdd,
+    this.onMarkerAddProgress,
+    this.onMarkerRemove,
     this.onMarkerUpdate,
   }) : super(key: key);
 
@@ -689,6 +703,8 @@ class _KLineChartState extends State<KLineChart>
                     initEditId: widget.initMarkerEditId,
                     controller: markerController,
                     onMarkerAdd: widget.onMarkerAdd,
+                    onMarkerAddProgress: widget.onMarkerAddProgress,
+                    onMarkerRemove: widget.onMarkerRemove,
                     onMarkerUpdate: widget.onMarkerUpdate,
                   ),
                 ),

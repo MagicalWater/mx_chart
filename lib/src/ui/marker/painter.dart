@@ -116,23 +116,34 @@ class ChartMarkerPainter extends CustomPainter {
 
       for (var element in points) {
         final anchorPath = Path()..moveTo(element.dx, element.dy);
+        final anchorShadowPath = Path()..moveTo(element.dx, element.dy);
         final extendAnchorPath = Path()..moveTo(element.dx, element.dy);
+
+        final size = data.anchorPointRadius * 2;
         final rect = Rect.fromCenter(
           center: element,
-          width: data.anchorPointRadius * 2,
-          height: data.anchorPointRadius * 2,
+          width: size,
+          height: size,
+        );
+        final shadowRect = Rect.fromCenter(
+          center: element,
+          width: size + extendClickableRadius,
+          height: size + extendClickableRadius,
         );
         final extendRect = Rect.fromCenter(
           center: element,
-          width: data.anchorPointRadius * 2 + extendClickableRadius * 2,
-          height: data.anchorPointRadius * 2 + extendClickableRadius * 2,
+          width: size + extendClickableRadius * 2,
+          height: size + extendClickableRadius * 2,
         );
 
         anchorPath.addOval(rect);
+        anchorShadowPath.addOval(shadowRect);
         extendAnchorPath.addOval(extendRect);
         anchorPointPath.add(extendAnchorPath);
 
-        canvas.drawPath(anchorPath, paint);
+        canvas.drawPath(anchorShadowPath, paint..color = data.color.withOpacity(0.5));
+        canvas.drawPath(anchorPath, paint..color = data.color);
+
       }
     }
     return anchorPointPath;

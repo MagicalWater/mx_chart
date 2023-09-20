@@ -166,8 +166,16 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
             print('Marker新增成功: ${marker.id}');
           },
 
+          onMarkerAddProgress: (type, point, totalPoint) {
+            print('Marker新增進度: $type, $point, $totalPoint');
+          },
+
           onMarkerUpdate: (markers) {
-            print('Marker更新: ${markers.last}');
+            print('Marker更新: ${markers.length}');
+          },
+
+          onMarkerRemove: (marker) {
+            print('Marker刪除: ${marker.id}');
           },
           // priceTagBuilder: (context, position) {
           //   return Stack(
@@ -344,14 +352,22 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
         button(
           "標記新增模式",
           onPressed: () {
-            _chartController.setMarkerMode(MarkerMode.add, markerTypeIfAdd: MarkerType.ray);
+            _chartController.setMarkerMode(
+              MarkerMode.add,
+              markerTypeIfAdd: MarkerType.values[9],
+            );
           },
         ),
-
         button(
           "標記可編輯瀏覽模式",
           onPressed: () {
             _chartController.setMarkerMode(MarkerMode.editableView);
+          },
+        ),
+        button(
+          "清除所有標記",
+          onPressed: () {
+            _chartController.setMarkers([]);
           },
         ),
       ],

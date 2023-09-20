@@ -5,14 +5,16 @@ import 'package:mx_chart/src/ui/marker/model/model.dart';
 import 'package:mx_chart/src/ui/marker/panel/stroke_width_panel.dart';
 import 'package:popover/popover.dart';
 
+import 'panel/color_panel.dart';
 import 'panel/dash_path_panel.dart';
+import 'panel/delete_panel.dart';
 
 /// 標記的設定面板
 class MarkerPanel extends StatefulWidget {
   final MarkerPath? marker;
 
   /// 設定值變更回調
-  final ValueChanged<MarkerData>? onChanged;
+  final ValueChanged<MarkerData?>? onChanged;
 
   final ValueChanged<Offset>? onDrag;
 
@@ -202,6 +204,11 @@ class _MarkerPanelState extends State<MarkerPanel> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // 顏色設定
+          _colorPanel(),
+
+          const SizedBox(width: 5),
+
           // 線條寬度設定
           _strokePanel(),
 
@@ -209,7 +216,78 @@ class _MarkerPanelState extends State<MarkerPanel> {
 
           // 虛線設定
           _dashPanel(),
+
+          const SizedBox(width: 5),
+
+          // 刪除標記
+          _deletePanel(),
         ],
+      ),
+    );
+  }
+
+  /// 刪除標記面板
+  Widget _deletePanel() {
+    return SizedBox(
+      width: buttonSize,
+      height: buttonSize,
+      child: Builder(
+        builder: (context) {
+          return DeletePanel(
+            onTap: () {
+              widget.onChanged?.call(null);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  /// 標記顏色設定面板
+  Widget _colorPanel() {
+    return SizedBox(
+      width: buttonSize,
+      height: buttonSize,
+      child: Builder(
+        builder: (context) {
+          return ColorPanel(
+            color: widget.marker?.data.color ?? Colors.black,
+            onTap: () {
+              showPopover(
+                context: context,
+                backgroundColor: panelBg,
+                bodyBuilder: (context) => ColorPanelDetail(
+                  itemWidth: 25,
+                  itemHeight: 25,
+                  space: 8,
+                  colors: const [
+                    Colors.orange,
+                    Colors.red,
+                    Colors.green,
+                    Colors.blue,
+                    Colors.yellow,
+                    Colors.purple,
+                  ],
+                  onChanged: (color) {
+                    Navigator.of(context).pop();
+                    if (widget.marker?.data != null &&
+                        widget.marker!.data.color != color) {
+                      final newData = widget.marker!.data.copyWith(
+                        color: color,
+                      );
+                      widget.onChanged?.call(newData);
+                      setState(() {});
+                    }
+                  },
+                ),
+                direction: PopoverDirection.top,
+                arrowHeight: 0,
+                arrowWidth: 0,
+                radius: 2,
+              );
+            },
+          );
+        },
       ),
     );
   }
