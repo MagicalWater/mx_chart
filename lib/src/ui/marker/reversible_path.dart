@@ -1,20 +1,16 @@
 import 'dart:typed_data';
-
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-
 /// 可反轉的路徑
-class ReversiblePath extends Path {
+class ReversiblePath {
+  Path get entity => _realPath;
+
   final _realPath = Path();
 
   final List<_Operation> _operations = [];
 
   Offset _currentPoint = Offset.zero;
 
-  factory ReversiblePath() => _NativePath;
-
-  @override
   void moveTo(double x, double y) {
     _realPath.moveTo(x, y);
 
@@ -30,7 +26,6 @@ class ReversiblePath extends Path {
     _currentPoint = Offset(x, y);
   }
 
-  @override
   void lineTo(double x, double y) {
     _realPath.lineTo(x, y);
 
@@ -46,7 +41,6 @@ class ReversiblePath extends Path {
     _currentPoint = Offset(x, y);
   }
 
-  @override
   void conicTo(double x1, double y1, double x2, double y2, double w) {
     _realPath.conicTo(x1, y1, x2, y2, w);
 
@@ -62,7 +56,6 @@ class ReversiblePath extends Path {
     _currentPoint = Offset(x2, y2);
   }
 
-  @override
   void cubicTo(
       double x1, double y1, double x2, double y2, double x3, double y3) {
     _realPath.cubicTo(x1, y1, x2, y2, x3, y3);
@@ -79,7 +72,6 @@ class ReversiblePath extends Path {
     _currentPoint = Offset(x3, y3);
   }
 
-  @override
   void quadraticBezierTo(double x1, double y1, double x2, double y2) {
     _realPath.quadraticBezierTo(x1, y1, x2, y2);
 
@@ -153,140 +145,34 @@ class ReversiblePath extends Path {
     return path;
   }
 
-  @override
   PathFillType get fillType => _realPath.fillType;
 
-  @override
   set fillType(PathFillType value) {
     _realPath.fillType;
   }
 
-  @override
-  void addArc(Rect oval, double startAngle, double sweepAngle) {
-    _realPath.addArc(oval, startAngle, sweepAngle);
-  }
-
-  @override
-  void addOval(Rect oval) {
-    _realPath.addOval(oval);
-  }
-
-  @override
-  void addPath(Path path, Offset offset, {Float64List? matrix4}) {
-    _realPath.addPath(path, offset, matrix4: matrix4);
-  }
-
-  @override
-  void addPolygon(List<Offset> points, bool close) {
-    _realPath.addPolygon(points, close);
-  }
-
-  @override
-  void addRRect(RRect rrect) {
-    _realPath.addRRect(rrect);
-  }
-
-  @override
-  void addRect(Rect rect) {
-    _realPath.addRect(rect);
-  }
-
-  @override
-  void arcTo(
-      Rect rect, double startAngle, double sweepAngle, bool forceMoveTo) {
-    _realPath.arcTo(rect, startAngle, sweepAngle, forceMoveTo);
-  }
-
-  @override
-  void arcToPoint(Offset arcEnd,
-      {Radius radius = Radius.zero,
-      double rotation = 0.0,
-      bool largeArc = false,
-      bool clockwise = true}) {
-    _realPath.arcToPoint(arcEnd,
-        radius: radius,
-        rotation: rotation,
-        largeArc: largeArc,
-        clockwise: clockwise);
-  }
-
-  @override
   void close() {
     _realPath.close();
   }
 
-  @override
-  PathMetrics computeMetrics({bool forceClosed = false}) {
-    return _realPath.computeMetrics(forceClosed: forceClosed);
-  }
-
-  @override
-  bool contains(Offset point) {
-    return _realPath.contains(point);
-  }
-
-  @override
   void extendWithPath(Path path, Offset offset, {Float64List? matrix4}) {
     _realPath.extendWithPath(path, offset, matrix4: matrix4);
   }
 
-  @override
+  PathMetrics computeMetrics({bool forceClosed = false}) {
+    return _realPath.computeMetrics(forceClosed: forceClosed);
+  }
+
+  bool contains(Offset point) {
+    return _realPath.contains(point);
+  }
+
   Rect getBounds() {
     return _realPath.getBounds();
   }
 
-  @override
-  void relativeArcToPoint(Offset arcEndDelta,
-      {Radius radius = Radius.zero,
-      double rotation = 0.0,
-      bool largeArc = false,
-      bool clockwise = true}) {
-    _realPath.relativeArcToPoint(arcEndDelta,
-        radius: radius,
-        rotation: rotation,
-        largeArc: largeArc,
-        clockwise: clockwise);
-  }
-
-  @override
-  void relativeConicTo(double x1, double y1, double x2, double y2, double w) {
-    _realPath.relativeConicTo(x1, y1, x2, y2, w);
-  }
-
-  @override
-  void relativeCubicTo(
-      double x1, double y1, double x2, double y2, double x3, double y3) {
-    _realPath.relativeCubicTo(x1, y1, x2, y2, x3, y3);
-  }
-
-  @override
-  void relativeLineTo(double dx, double dy) {
-    _realPath.relativeLineTo(dx, dy);
-  }
-
-  @override
-  void relativeMoveTo(double dx, double dy) {
-    _realPath.relativeMoveTo(dx, dy);
-  }
-
-  @override
-  void relativeQuadraticBezierTo(double x1, double y1, double x2, double y2) {
-    _realPath.relativeQuadraticBezierTo(x1, y1, x2, y2);
-  }
-
-  @override
   void reset() {
     _realPath.reset();
-  }
-
-  @override
-  Path shift(Offset offset) {
-    return _realPath.shift(offset);
-  }
-
-  @override
-  Path transform(Float64List matrix4) {
-    return _realPath.transform(matrix4);
   }
 }
 

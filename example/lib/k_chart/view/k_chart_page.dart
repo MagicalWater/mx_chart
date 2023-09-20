@@ -344,7 +344,7 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
         button(
           "標記新增模式",
           onPressed: () {
-            _chartController.setMarkerMode(MarkerMode.add, markerTypeIfAdd: MarkerType.priceLine);
+            _chartController.setMarkerMode(MarkerMode.add, markerTypeIfAdd: MarkerType.ray);
           },
         ),
 

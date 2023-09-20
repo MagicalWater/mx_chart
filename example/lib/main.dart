@@ -25,7 +25,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       home: KChartPage(),
       // home: Scaffold(
       //   body: Padding(
@@ -74,14 +74,14 @@ class CustomPathPainter extends CustomPainter {
     final path1 = ReversiblePath();
 
     // path1.arcTo(Rect.fromLTWH(0, 0, 50, 100), pi * 4, pi, true);
-    path1.moveTo(0, 30);
+    path1.moveTo(0, 100);
     path1.lineTo(100, 30);
-    path1.lineTo(100, 100);
-    path1.lineTo(0, 100);
+    // path1.lineTo(100, 100);
+    path1.lineTo(200, 100);
     // path1.close();
 
-    final path2 = path1.reverse().shift(const Offset(0, 0));
-    final path3 = path1.shift(const Offset(0, -30));
+    final path2 = path1.reverse().shift(const Offset(0, 30));
+    final path3 = path1.entity.shift(const Offset(0, -30));
 
     // canvas.drawPath(path3, paint);
     // final metrics = ;
@@ -97,7 +97,10 @@ class CustomPathPainter extends CustomPainter {
     //
     // path1.close();
 
-    canvas.drawPath(path3, paint);
+    // canvas.drawPath(path1.entity, paint);
+    canvas.drawPath(path3, paint..color = Colors.blue);
+    canvas.drawPath(path2, paint..color = Colors.red);
+    // canvas.drawPath(path1.entity, paint..color = Colors.green);
 
     onPathReady?.call(path3);
   }

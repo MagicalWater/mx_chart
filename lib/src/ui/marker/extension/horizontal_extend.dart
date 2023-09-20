@@ -56,7 +56,7 @@ extension HorizontalExtendMarker on ChartMarkerPainter {
         ..moveTo(realPoint1.dx, realPoint1.dy)
         ..lineTo(realPoint2.dx, realPoint2.dy);
 
-      extendPath = path.shift(Offset(0, -extendPathClickRadius));
+      extendPath = path.entity.shift(Offset(0, -extendPathClickRadius));
       final downPath = path.reverse().shift(Offset(0, extendPathClickRadius));
 
       extendPath.extendWithPath(downPath, Offset.zero);
@@ -69,7 +69,7 @@ extension HorizontalExtendMarker on ChartMarkerPainter {
         ..style = PaintingStyle.stroke;
 
       // 繪製
-      drawPath(path: path, canvas: canvas, marker: marker, paint: paint);
+      drawPath(path: path.entity, canvas: canvas, marker: marker, paint: paint);
     }
 
     final anchorPointPath = drawAnchorPath(
