@@ -430,10 +430,10 @@ class _SizeGetter extends SingleChildRenderObjectWidget {
   final ValueChanged<Size> onGetSize;
 
   const _SizeGetter({
-    super.key,
+    Key? key,
     required this.onGetSize,
     Widget? child,
-  }) : super(child: child);
+  }) : super(key: key, child: child);
 
   @override
   RenderObject createRenderObject(BuildContext context) {

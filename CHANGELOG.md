@@ -1,3 +1,6 @@
+## 2.1.0+1
+- New Feature: Chart Marker
+
 ## 2.0.3+1
 - KLineDataInfoTooltip adds a variable layoutBuilder
 

@@ -36,7 +36,7 @@ extension RayMarker on ChartMarkerPainter {
     final canPoint2Draw = pos2 != null && x2 != null;
 
     Offset? realPoint1, realPoint2;
-    Offset? anchorPoint1, anchorPoint2;
+    Offset? anchorPoint2;
 
     // 斜率, 截距
     double? intercept;

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:path_drawing/path_drawing.dart';
 
 /// 標記顏色設定面板
 class ColorPanel extends StatelessWidget {

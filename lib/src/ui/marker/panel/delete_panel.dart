@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:path_drawing/path_drawing.dart';
 
 /// 刪除標記面板
 class DeletePanel extends StatelessWidget {
