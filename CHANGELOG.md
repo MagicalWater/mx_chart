@@ -1,4 +1,4 @@
-## 2.1.1+1
+## 2.1.1+2
 - Add parameter onMarkerModeChanged: Callback triggered when the Marker mode is changed.
 
 ## 2.1.0+1

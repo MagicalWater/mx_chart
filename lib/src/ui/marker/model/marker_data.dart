@@ -68,7 +68,7 @@ class MarkerData {
     return {
       'id': id,
       'name': name,
-      'positions': positions.map((e) => e.toMap()),
+      'positions': positions.map((e) => e.toMap()).toList(),
       'type': type.name,
       'color': color.value,
       'strokeWidth': strokeWidth,
