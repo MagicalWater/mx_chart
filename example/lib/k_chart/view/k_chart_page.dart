@@ -132,6 +132,9 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
               children: [volume, main, indicator, timeline],
             );
           },
+          onMarkerModeChanged: (mode) {
+            print('marker模式變更: $mode');
+          },
           initMarkers: [
             // MarkerData(
             //   id: '1',

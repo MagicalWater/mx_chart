@@ -40,6 +40,9 @@ class ChartMarker extends StatefulWidget {
   final void Function(MarkerType type, int point, int totalPoint)?
       onMarkerAddProgress;
 
+  /// 當Marker mode有變更時的回調
+  final void Function(MarkerMode mode)? onModeChanged;
+
   /// 當有Marker新增時的回調
   /// 有新增時會回調此方法, 同時回調 onMarkerUpdate
   final void Function(MarkerData marker)? onMarkerAdd;
@@ -71,6 +74,7 @@ class ChartMarker extends StatefulWidget {
     this.onMarkerAddProgress,
     this.onMarkerRemove,
     this.onMarkerUpdate,
+    this.onModeChanged,
     this.initEditId,
   }) : super(key: key);
 
@@ -204,7 +208,7 @@ class _ChartMarkerState extends State<ChartMarker> {
                   currentEditId = null;
                   oldEditData = null;
                   currentMode = MarkerMode.editableView;
-
+                  widget.onModeChanged?.call(currentMode);
                   widget.onMarkerRemove?.call(value.data);
                 } else {
                   if (newCreateData != null) {
@@ -436,6 +440,7 @@ class _ChartMarkerState extends State<ChartMarker> {
 
               // 轉換成編輯模式
               currentMode = MarkerMode.edit;
+              widget.onModeChanged?.call(currentMode);
               setState(() {});
             }
           }
@@ -518,6 +523,7 @@ class _ChartMarkerState extends State<ChartMarker> {
                 newCreateData!.data.positions.length,
                 newCreateData!.data.type.needPoint,
               );
+              widget.onModeChanged?.call(currentMode);
               widget.onMarkerAdd?.call(newCreateData!.data);
               widget.onMarkerUpdate
                   ?.call(currentPaths.map((e) => e.data).toList());
@@ -574,12 +580,14 @@ class _ChartMarkerState extends State<ChartMarker> {
 
                 // 轉換成編輯模式
                 currentMode = MarkerMode.edit;
+                widget.onModeChanged?.call(currentMode);
                 setState(() {});
               } else {
                 // 退出編輯模式
                 currentEditId = null;
                 oldEditData = null;
                 currentMode = MarkerMode.editableView;
+                widget.onModeChanged?.call(currentMode);
                 setState(() {});
               }
               break;
@@ -711,6 +719,8 @@ class _ChartMarkerState extends State<ChartMarker> {
         setState(() {});
         break;
     }
+
+    widget.onModeChanged?.call(currentMode);
   }
 
   /// 設定marker資料列表

@@ -217,6 +217,9 @@ class KLineChart extends StatefulWidget {
   /// 當Marker列表有更新時回調
   final void Function(List<MarkerData> markers)? onMarkerUpdate;
 
+  /// 當Marker mode有變更時的回調
+  final void Function(MarkerMode mode)? onMarkerModeChanged;
+
   const KLineChart({
     Key? key,
     required this.datas,
@@ -255,6 +258,7 @@ class KLineChart extends StatefulWidget {
     this.onMarkerAddProgress,
     this.onMarkerRemove,
     this.onMarkerUpdate,
+    this.onMarkerModeChanged,
   }) : super(key: key);
 
   /// 預設x軸時間格式化
@@ -706,6 +710,7 @@ class _KLineChartState extends State<KLineChart>
                     onMarkerAddProgress: widget.onMarkerAddProgress,
                     onMarkerRemove: widget.onMarkerRemove,
                     onMarkerUpdate: widget.onMarkerUpdate,
+                    onModeChanged: widget.onMarkerModeChanged,
                   ),
                 ),
               );

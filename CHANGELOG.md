@@ -1,3 +1,6 @@
+## 2.1.1+1
+- Add parameter onMarkerModeChanged: Callback triggered when the Marker mode is changed.
+
 ## 2.1.0+1
 - New Feature: Chart Marker
 
