@@ -1,3 +1,8 @@
+## 2.1.2+1
+KLineChartController:
+- Added variable `hasClient` to indicate whether it is already bound to the view.
+- Modified all methods below to return a `bool` indicating the success of execution.
+
 ## 2.1.1+2
 - Add parameter onMarkerModeChanged: Callback triggered when the Marker mode is changed.
 
