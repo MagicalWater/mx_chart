@@ -304,6 +304,9 @@ class _KLineChartState extends State<KLineChart>
   /// 價格標示位置串流
   late final Stream<PricePosition> _pricePositionStream;
 
+  /// 價格位置是否需要等待更新
+  // bool markPricePositionNeedUpdate = true;
+
   /// 圖表拖移處理
   late final ChartGesture chartGesture;
 
@@ -455,6 +458,10 @@ class _KLineChartState extends State<KLineChart>
       oldDataCount = widget.datas.length;
       isDataLessOnePageCallBack = false;
     }
+
+    // print('重新配置價格位置');
+    // 重置price position
+    // markPricePositionNeedUpdate = true;
     super.didUpdateWidget(oldWidget);
   }
 
@@ -622,6 +629,7 @@ class _KLineChartState extends State<KLineChart>
                   isNewerDisplay: isNewerDisplay,
                   realYToPrice: realYToPrice,
                 );
+                // markPricePositionNeedUpdate = false;
                 _pricePositionStreamController.add(position);
               },
               localPosition: () {
@@ -683,10 +691,14 @@ class _KLineChartState extends State<KLineChart>
         return StreamBuilder<PricePosition>(
           stream: _pricePositionStream,
           builder: (context, snapshot) {
-            if (snapshot.hasData &&
+            // print('價格位置: ${snapshot.data}');
+            final canRender = snapshot.hasData &&
                 mainRect != null &&
                 !mainRect.isEmpty &&
-                widget.dataPeriod != null) {
+                widget.dataPeriod != null;
+            // print(
+            //     '是否可以渲染marker: $canRender: ${snapshot.data?.lastPrice} => ${widget.datas.lastOrNull?.close}');
+            if (canRender) {
               final position = snapshot.data!;
 
               return Positioned(
@@ -801,11 +813,14 @@ class _KLineChartState extends State<KLineChart>
           stream: _pricePositionStream,
           builder: (context, snapshot) {
             final position = snapshot.data;
-            if (mainRect == null ||
-                mainRect.isEmpty ||
-                widget.mainChartState.isNone ||
-                realTimePrice == null ||
-                position == null) {
+
+            final canRender = mainRect != null &&
+                !mainRect.isEmpty &&
+                widget.mainChartState.isNone &&
+                realTimePrice != null &&
+                position != null;
+
+            if (!canRender) {
               return const SizedBox.shrink();
             }
 

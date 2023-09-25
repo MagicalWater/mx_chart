@@ -31,7 +31,7 @@ class KChartBloc extends Bloc<KChartEvent, KChartState> {
     KChartInitEvent event,
     Emitter<KChartState> emit,
   ) async {
-    var datas = await repository.getData();
+    var datas = await repository.getData(event.index);
     print('資料筆數: ${datas.length}');
     emit(state.copyWith(datas: datas));
   }

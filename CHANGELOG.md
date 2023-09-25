@@ -1,13 +1,13 @@
+## 2.1.3+2
+- Fixed an issue where ChartMarkerPainter did not take into account "late final," resulting in an error when reassigning values.
+
+- Added the ability for markers to incorporate animation when assigned via controller.
+
 ## 2.1.3+1
 - Adjusted behavior for when long press is disabled. If the current state is already in a disabled long press state, onLongPressCancel() will not be triggered again.
 
 KLineChartController:
 - Added parameter markerState to retrieve current marker-related state.
-
-## 2.1.2+1
-KLineChartController:
-- Added variable `hasClient` to indicate whether it is already bound to the view.
-- Modified all methods below to return a `bool` indicating the success of execution.
 
 ## 2.1.2+1
 KLineChartController:

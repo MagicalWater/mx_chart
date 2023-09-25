@@ -25,20 +25,20 @@ class ChartMarkerPainter extends CustomPainter {
   final Duration period;
 
   /// 取得顯示的第一筆資料
-  late final KLineData startData;
-  late final KLineData endData;
+  late KLineData startData;
+  late KLineData endData;
 
   /// 取得第一筆與最後一筆資料的x軸位置
-  late final double startDataDisplayX;
+  late double startDataDisplayX;
 
-  late final double endDataDisplayX;
+  late double endDataDisplayX;
 
   /// 取得第一筆資料與最後一筆資料在畫布上的x軸位置
-  late final double startDataCanvasX;
-  late final double endDataCanvasX;
+  late double startDataCanvasX;
+  late double endDataCanvasX;
 
   /// 畫布最右側的x軸位置
-  late final double canvasRightX;
+  late double canvasRightX;
 
   /// 當算出所有的繪製路徑時回調
   /// 方便外部取得路徑並判斷點擊事件
@@ -220,7 +220,7 @@ class ChartMarkerPainter extends CustomPainter {
     if (oldDelegate is ChartMarkerPainter) {
       return true;
     }
-    return true;
+    return false;
   }
 }
 

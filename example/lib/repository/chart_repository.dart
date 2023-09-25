@@ -5,10 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:mx_chart/mx_chart.dart';
 
 class ChartRepository {
-  Future<List<KLineData>> getData() async {
+  Future<List<KLineData>> getData(int index) async {
     String result;
     result =
-        await rootBundle.loadString('assets/jsons/chart_example/kline.json');
+        await rootBundle.loadString('assets/jsons/chart_example/kline_$index.json');
     var parseJson = json.decode(result);
     List list = parseJson['data'];
     var datas = list.map((json) {

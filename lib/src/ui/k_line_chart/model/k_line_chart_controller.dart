@@ -42,17 +42,21 @@ class KLineChartController {
       }
       return false;
     }
-    _bind!.markerController.setMarkerMode(
+    return _bind!.markerController.setMarkerMode(
       markerMode,
       editId: editId,
       markerTypeIfAdd: markerTypeIfAdd,
     );
-    return true;
   }
 
   /// 設定marker資料列表
   /// [markers] - marker資料列表
-  bool setMarkers(List<MarkerData> markers) {
+  bool setMarkers(
+    List<MarkerData> markers, {
+    bool animated = true,
+    Curve? curve,
+    Duration? duration,
+  }) {
     if (_bind == null) {
       if (kDebugMode) {
         print(
@@ -60,8 +64,12 @@ class KLineChartController {
       }
       return false;
     }
-    _bind!.markerController.setMarkers(markers);
-    return true;
+    return _bind!.markerController.setMarkers(
+      markers,
+      animated: animated,
+      curve: curve,
+      duration: duration,
+    );
   }
 
   void dispose() {

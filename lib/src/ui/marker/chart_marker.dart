@@ -110,6 +110,15 @@ class _ChartMarkerState extends State<ChartMarker> {
 
   late MarkerType currentMarkerTypeIfAdd;
 
+  /// 構建marker時是否使用動畫
+  int animatedKeyIndex = 0;
+
+  /// 構建marker的動畫差值器
+  Curve animatedCurve = Curves.easeOut;
+
+  /// 構建marker的動畫持續時間
+  Duration animatedDuration = const Duration(milliseconds: 300);
+
   @override
   void initState() {
     currentPaths =
@@ -176,20 +185,32 @@ class _ChartMarkerState extends State<ChartMarker> {
               }
             },
             child: RepaintBoundary(
-              child: CustomPaint(
-                size: Size(widget.width, widget.height),
-                painter: ChartMarkerPainter(
-                  markers: [
-                    ...currentPaths,
-                    if (newCreateData != null) newCreateData!,
-                  ],
-                  painterValueInfo: widget.painterValueInfo,
-                  pricePosition: widget.position,
-                  period: widget.dataPeriod,
-                  priceFormatter: widget.priceFormatter,
-                  markerMode: currentMode,
-                  markerOffset: markerOffset,
-                  editId: currentEditId,
+              child: AnimatedSwitcher(
+                duration: animatedDuration,
+                switchInCurve: animatedCurve,
+                switchOutCurve: animatedCurve,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                },
+                child: CustomPaint(
+                  key: ValueKey(animatedKeyIndex),
+                  size: Size(widget.width, widget.height),
+                  painter: ChartMarkerPainter(
+                    markers: [
+                      ...currentPaths,
+                      if (newCreateData != null) newCreateData!,
+                    ],
+                    painterValueInfo: widget.painterValueInfo,
+                    pricePosition: widget.position,
+                    period: widget.dataPeriod,
+                    priceFormatter: widget.priceFormatter,
+                    markerMode: currentMode,
+                    markerOffset: markerOffset,
+                    editId: currentEditId,
+                  ),
                 ),
               ),
             ),
@@ -725,11 +746,25 @@ class _ChartMarkerState extends State<ChartMarker> {
 
   /// 設定marker資料列表
   /// [markers] - marker資料列表
-  void setMarkers(List<MarkerData> markers) {
+  void setMarkers(
+    List<MarkerData> markers, {
+    bool animated = true,
+    Curve? curve,
+    Duration? duration,
+  }) {
     // 只有在瀏覽模式或者可編輯瀏覽模式才可以設定marker
     if (currentMode == MarkerMode.view ||
         currentMode == MarkerMode.editableView) {
       currentPaths = markers.map((e) => MarkerPath(data: e)).toList();
+      if (animated) {
+        animatedKeyIndex++;
+      }
+      if (curve != null) {
+        animatedCurve = curve;
+      }
+      if (duration != null) {
+        animatedDuration = duration;
+      }
       setState(() {});
     } else {
       if (kDebugMode) {

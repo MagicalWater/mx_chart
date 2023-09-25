@@ -4,7 +4,11 @@ part of 'k_chart_bloc.dart';
 abstract class KChartEvent {}
 
 /// 初始化加載資料事件
-class KChartInitEvent extends KChartEvent {}
+class KChartInitEvent extends KChartEvent {
+  final int index;
+
+  KChartInitEvent(this.index);
+}
 
 /// 切換主視圖類型
 class KChartMainStateEvent extends KChartEvent {

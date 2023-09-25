@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,11 +19,14 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
   /// 圖表控制器
   final _chartController = KLineChartController();
 
+  int klineIndex = 1;
+  bool waitBuild = false;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (BuildContext context) =>
-          KChartBloc(ChartRepository())..add(KChartInitEvent()),
+          KChartBloc(ChartRepository())..add(KChartInitEvent(klineIndex)),
       child: _view(),
     );
   }
@@ -135,33 +140,7 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           onMarkerModeChanged: (mode) {
             print('marker模式變更: $mode');
           },
-          initMarkers: [
-            // MarkerData(
-            //   id: '1',
-            //   name: '1',
-            //   positions: [
-            //     MarkerPosition(
-            //       dateTime: DateTime.parse('2023-06-23T13:00:00'),
-            //       xRate: 0.5,
-            //       price: 68.20,
-            //     ),
-            //     MarkerPosition(
-            //       dateTime: DateTime.parse('2023-06-26T00:00:00'),
-            //       xRate: 0.5,
-            //       price: 69.9,
-            //     ),
-            //     MarkerPosition(
-            //       dateTime: DateTime.parse('2023-06-28T00:00:00'),
-            //       xRate: 0.8,
-            //       price: 67.9,
-            //     ),
-            //   ],
-            //   type: MarkerType.waveLine3,
-            //   color: Colors.yellow,
-            //   strokeWidth: 2,
-            //   anchorPointRadius: 5,
-            // ),
-          ],
+          initMarkers: klineIndex == 1 ? [markerData1] : [markerData2],
 
           dataPeriod: const Duration(minutes: 1),
 
@@ -175,6 +154,9 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
 
           onMarkerUpdate: (markers) {
             print('Marker更新: ${markers.length}');
+            // final jsonData = markers.map((e) => e.toMap()).toList();
+            // final jsonString = json.encode(jsonData);
+            // print(jsonString);
           },
 
           onMarkerRemove: (marker) {
@@ -218,7 +200,7 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
                     duration: const Duration(milliseconds: 500),
                     curve: Curves.fastOutSlowIn,
                     alignment: Alignment.topCenter,
-                    child: _content(state),
+                    child: waitBuild ? SizedBox() : _content(state),
                   ),
                 ),
                 if (state.isLoading)
@@ -355,10 +337,11 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
         button(
           "標記新增模式",
           onPressed: () {
-            _chartController.setMarkerMode(
+            bool result = _chartController.setMarkerMode(
               MarkerMode.add,
-              markerTypeIfAdd: MarkerType.values[9],
+              markerTypeIfAdd: MarkerType.trendLine,
             );
+            print('變更狀態完成: $result');
           },
         ),
         button(
@@ -373,7 +356,48 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
             _chartController.setMarkers([]);
           },
         ),
+        button(
+          "變更資料",
+          onPressed: () {
+            if (klineIndex == 1) {
+              klineIndex = 2;
+              // waitBuild = true;
+            } else {
+              klineIndex = 1;
+              // waitBuild = true;
+            }
+            // Future.delayed(Duration(seconds: 2)).then((value) {
+            //   waitBuild = false;
+            //   setState(() {});
+            // });
+            context.read<KChartBloc>().add(KChartInitEvent(klineIndex));
+          },
+        ),
       ],
     );
   }
+}
+
+const markerIndex1 = '''
+[{"id":"1695612744118","name":"1695612744118","positions":[{"dateTime":"2023-09-25 02:43:00.000","xRate":0.5416660308837891,"price":90.15646153846154},{"dateTime":"2023-09-25 02:54:00.000","xRate":0.7916660308837891,"price":90.23994872107873}],"type":"trendLine","color":4294961979,"strokeWidth":1.0,"anchorPointRadius":5.0,"dashArray":[]}]
+''';
+
+MarkerData get markerData1 {
+  final jsonData = json.decode(markerIndex1);
+  final markers = jsonData
+      .map<MarkerData>((e) => MarkerData.fromMap(e as Map<String, dynamic>))
+      .toList();
+  return markers.first;
+}
+
+const markerIndex2 = '''
+[{"id":"1695612744118","name":"1695612744118","positions":[{"dateTime":"2023-09-25 02:43:00.000","xRate":0.5416660308837891,"price":90.15646153846154},{"dateTime":"2023-09-25 02:54:00.000","xRate":0.7916660308837891,"price":90.23994872107873}],"type":"trendLine","color":4294961979,"strokeWidth":1.0,"anchorPointRadius":5.0,"dashArray":[]},{"id":"1695612778173","name":"1695612778173","positions":[{"dateTime":"2023-09-22 05:00:00.000","xRate":0.6666660308837891,"price":89.24834615384616},{"dateTime":"2023-09-22 10:00:00.000","xRate":0.04166603088378906,"price":91.02494876509446}],"type":"trendLine","color":4288423856,"strokeWidth":4.0,"anchorPointRadius":5.0,"dashArray":[]}]
+''';
+
+MarkerData get markerData2 {
+  final jsonData = json.decode(markerIndex2);
+  final markers = jsonData
+      .map<MarkerData>((e) => MarkerData.fromMap(e as Map<String, dynamic>))
+      .toList();
+  return markers.first;
 }
