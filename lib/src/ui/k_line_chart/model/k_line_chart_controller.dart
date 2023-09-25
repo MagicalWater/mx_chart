@@ -5,6 +5,14 @@ class KLineChartController {
 
   bool get hasClient => _bind != null;
 
+  /// 當前的marker相關狀態
+  MarkerState get markerState => MarkerState(
+        hasClient: _bind?.markerController.hasClient ?? false,
+        editId: _bind?.markerController.currentEditId,
+        mode: _bind?.markerController.currentMode,
+        typeIfAdd: _bind?.markerController.currentMarkerTypeIfAdd,
+      );
+
   /// 滾動回起點
   /// [animated] - 是否使用動畫滾動
   Future<bool> scroll1ToRight({bool animated = true}) async {
@@ -34,7 +42,7 @@ class KLineChartController {
       }
       return false;
     }
-    _bind!.setMarkerMode(
+    _bind!.markerController.setMarkerMode(
       markerMode,
       editId: editId,
       markerTypeIfAdd: markerTypeIfAdd,
@@ -52,11 +60,30 @@ class KLineChartController {
       }
       return false;
     }
-    _bind!.setMarkers(markers);
+    _bind!.markerController.setMarkers(markers);
     return true;
   }
 
   void dispose() {
     _bind = null;
   }
+}
+
+class MarkerState {
+  final bool hasClient;
+
+  /// 當前正在編輯中的marker id
+  final String? editId;
+
+  /// 當前的marker mode
+  final MarkerMode? mode;
+
+  final MarkerType? typeIfAdd;
+
+  MarkerState({
+    required this.hasClient,
+    required this.editId,
+    required this.mode,
+    required this.typeIfAdd,
+  });
 }

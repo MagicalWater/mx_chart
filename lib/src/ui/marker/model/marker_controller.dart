@@ -3,6 +3,16 @@ part of '../chart_marker.dart';
 class MarkerController {
   _ChartMarkerState? _bind;
 
+  bool get hasClient => _bind != null;
+
+  /// 當前正在編輯中的marker id
+  String? get currentEditId => _bind?.currentEditId;
+
+  /// 當前的marker mode
+  MarkerMode? get currentMode => _bind?.currentMode;
+
+  MarkerType? get currentMarkerTypeIfAdd => _bind?.currentMarkerTypeIfAdd;
+
   /// 設定Marker模式
   /// [markerMode] - Marker模式
   /// [editId] - 編輯的marker id, 若設定的mode是[MarkerMode.edit]則需要帶入

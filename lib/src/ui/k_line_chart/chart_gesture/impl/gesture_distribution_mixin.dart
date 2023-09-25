@@ -310,12 +310,15 @@ mixin GestureDistributionMixin on ChartGesture
     if (enable) {
       isLongPressDisable = false;
     } else {
-      isLongPress = false;
       isLongPressDisable = true;
       _isNowInheritLongPress = false;
-      onLongPressCancel();
+      if (isLongPress) {
+        // 當前正處於長按
+        isLongPress = false;
+        onLongPressCancel();
+      }
 
-      // 因為長案被禁止了, 所以若當前有長案或者保留長案的設定都要清除
+      // 因為長按被禁止了, 所以若當前有長按或者保留長按的設定都要清除
       _cancelLongPressTimer();
     }
   }

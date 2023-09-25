@@ -208,7 +208,7 @@ class KLineChart extends StatefulWidget {
   /// [point] - 當前已經新增的點位數量
   /// [totalPoint] - 總共需要新增的點位數量
   final void Function(MarkerType type, int point, int totalPoint)?
-  onMarkerAddProgress;
+      onMarkerAddProgress;
 
   /// 當有Marker刪除時的回調
   /// 有刪除時會回調此方法, 同時回調 onMarkerUpdate
@@ -464,7 +464,8 @@ class _KLineChartState extends State<KLineChart>
     _pricePositionStreamController.close();
     _longPressDataStreamController.close();
     // _componentRectStreamController.close();
-    widget.controller?._bind = null;
+    widget.controller?.dispose();
+    markerController.dispose();
     super.dispose();
   }
 
@@ -929,26 +930,5 @@ class _KLineChartState extends State<KLineChart>
   /// 將圖表滾動回原點
   Future<void> scrollToRight({bool animated = true}) {
     return chartGesture.scrollToRight(animated: animated);
-  }
-
-  /// 設定Marker模式
-  /// [editId] - 編輯的marker id, 若設定的mode是[MarkerMode.edit]則需要帶入
-  /// [markerTypeIfAdd] - 設定當模式為新增時, 默認新增的類型, 可空, 因為原本就有預設類型
-  void setMarkerMode(
-    MarkerMode mode, {
-    String? editId,
-    MarkerType? markerTypeIfAdd,
-  }) {
-    markerController.setMarkerMode(
-      mode,
-      editId: editId,
-      markerTypeIfAdd: markerTypeIfAdd,
-    );
-  }
-
-  /// 設定marker資料列表
-  /// [markers] - marker資料列表
-  void setMarkers(List<MarkerData> markers) {
-    markerController.setMarkers(markers);
   }
 }
