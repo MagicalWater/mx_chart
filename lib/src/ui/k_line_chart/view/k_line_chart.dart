@@ -816,7 +816,7 @@ class _KLineChartState extends State<KLineChart>
 
             final canRender = mainRect != null &&
                 !mainRect.isEmpty &&
-                widget.mainChartState.isNone &&
+                !widget.mainChartState.isNone &&
                 realTimePrice != null &&
                 position != null;
 

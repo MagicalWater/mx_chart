@@ -1,3 +1,6 @@
+## 2.1.3+3
+- Fixed an issue with the priceTagBuilder: Custom price display component was not displaying correctly.
+
 ## 2.1.3+2
 - Fixed an issue where ChartMarkerPainter did not take into account "late final," resulting in an error when reassigning values.
 

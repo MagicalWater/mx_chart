@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui' as ui;
 import 'package:mx_chart/mx_chart.dart';
 import 'package:mx_chart_example/k_chart/bloc/k_chart_bloc.dart';
+import 'package:mx_chart_example/k_chart/widget/custom_price_line_tag.dart';
 import 'package:mx_chart_example/repository/chart_repository.dart';
 
 class KChartPage extends StatefulWidget {
@@ -162,22 +163,22 @@ class _KChartPageState extends State<KChartPage> with TickerProviderStateMixin {
           onMarkerRemove: (marker) {
             print('Marker刪除: ${marker.id}');
           },
-          // priceTagBuilder: (context, position) {
-          //   return Stack(
-          //     children: [
-          //       CustomPriceLineTag(
-          //         gridColumns: const ChartSizeSetting().gridColumns,
-          //         price: state.datas.last.close,
-          //         position: position,
-          //         priceFormatter: (value) => value.toStringAsFixed(2),
-          //         tag: '現價',
-          //         onTapGlobalTag: () {
-          //           print('點點');
-          //         },
-          //       ),
-          //     ],
-          //   );
-          // },
+          priceTagBuilder: (context, position, mainRect) {
+            return Stack(
+              children: [
+                CustomPriceLineTag(
+                  gridColumns: const ChartSizeSetting().gridColumns,
+                  price: state.datas.last.close,
+                  position: position,
+                  priceFormatter: (value) => value.toStringAsFixed(2),
+                  tag: '現價',
+                  onTapGlobalTag: () {
+                    print('點點');
+                  },
+                ),
+              ],
+            );
+          },
         );
       }
     }
