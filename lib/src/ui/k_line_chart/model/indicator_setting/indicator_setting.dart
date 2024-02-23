@@ -6,6 +6,16 @@ export 'setting/setting.dart';
 class IndicatorSetting {
   final MaSetting maSetting;
   final BollSetting bollSetting;
+
+  // ma的隱式週期
+  int? get implicitMaPeriod {
+    if (maSetting.periods.contains(bollSetting.period)) {
+      return null;
+    } else {
+      return bollSetting.period;
+    }
+  }
+
   final KdjSetting kdjSetting;
   final MacdSetting macdSetting;
   final RsiSetting rsiSetting;

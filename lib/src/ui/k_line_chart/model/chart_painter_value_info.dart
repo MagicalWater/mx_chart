@@ -122,7 +122,7 @@ class ChartPainterValueInfo {
     final dataIndex = getLongPressDataIndex();
     if (dataIndex != null) {
       final x = dataIndexToRealX(dataIndex);
-      final data = datas[dataIndex];
+      _longPressData = datas[dataIndex];
       final prevIndex = dataIndex - 1;
       KLineData? prevData;
       if (prevIndex >= 0) {
@@ -130,11 +130,12 @@ class ChartPainterValueInfo {
       }
       onLongPressData?.call(LongPressData(
         index: dataIndex,
-        data: data,
+        data: _longPressData!,
         prevData: prevData,
         isLongPressAtLeft: x <= _canvasWidth / 2,
       ));
     } else {
+      _longPressData = null;
       onLongPressData?.call(null);
     }
   }
@@ -307,21 +308,5 @@ class ChartPainterValueInfo {
     index = index.clamp(_startDataIndex, _endDataIndex);
     _longPressDataIndex = index >= _datas.length ? _datas.length - 1 : index;
     return _longPressDataIndex;
-  }
-
-  /// 取得長按中的data
-  KLineData? getLongPressData() {
-    if (!chartGesture.isLongPress) {
-      return null;
-    }
-    if (_longPressData != null) {
-      return _longPressData;
-    }
-    final index = getLongPressDataIndex();
-    if (index != null) {
-      _longPressData = _datas[index];
-      return _longPressData;
-    }
-    return null;
   }
 }

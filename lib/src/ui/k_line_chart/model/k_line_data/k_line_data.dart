@@ -82,7 +82,15 @@ extension IndicatorCalculateExtension on List<KLineData> {
     IndicatorSetting indicatorSetting = const IndicatorSetting(),
     bool coverExist = true,
   }) {
-    calculateMA(periods: indicatorSetting.maSetting.periods);
+
+    // 因為boll線需要ma線, 所以若boll有ma沒有的週期, 則需要再加上
+    // 但因為實際上ma沒有選擇此週期, 所以不能用於顯示
+    final maPeriods = {
+      ...indicatorSetting.maSetting.periods,
+      indicatorSetting.bollSetting.period
+    }.toList();
+
+    calculateMA(periods: maPeriods);
     calculateBOLL(
       period: indicatorSetting.bollSetting.period,
       bandwidth: indicatorSetting.bollSetting.bandwidth,
@@ -114,8 +122,16 @@ extension IndicatorCalculateExtension on List<KLineData> {
     IndicatorSetting indicatorSetting = const IndicatorSetting(),
     required List<KLineData> newData,
   }) {
+
+    // 因為boll線需要ma線, 所以若boll有ma沒有的週期, 則需要再加上
+    // 但因為實際上ma沒有選擇此週期, 所以不能用於顯示
+    final maPeriods = {
+      ...indicatorSetting.maSetting.periods,
+      indicatorSetting.bollSetting.period
+    }.toList();
+
     calculateMaAtLast(
-      periods: indicatorSetting.maSetting.periods,
+      periods: maPeriods,
       newData: newData,
     );
     calculateBollAtLast(

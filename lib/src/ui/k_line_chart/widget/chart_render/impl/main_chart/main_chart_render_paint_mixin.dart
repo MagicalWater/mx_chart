@@ -45,11 +45,16 @@ mixin MainChartRenderPaintMixin on MainChartValueMixin {
   void paintMaChart(Canvas canvas, Rect rect) {
     linePaint.strokeWidth = sizes.lineWidth;
 
+    final implicitMaPeriod = dataViewer.indicatorSetting.implicitMaPeriod;
+
     final maData = dataViewer.datas.map((e) => e.indicatorData.ma?.ma);
     final periods = dataViewer.indicatorSetting.maSetting.periods;
 
+    // period需要刪除隱式週期
+    final maPeriods = periods.where((e) => e != implicitMaPeriod).toList();
+
     var index = 0;
-    for (final element in periods) {
+    for (final element in maPeriods) {
       final maList = maData.map((e) => e?[element]).toList();
       final linePath = _getDisplayLinePath(maList, curve: false);
       linePaint.color = colors.maLine[index];
