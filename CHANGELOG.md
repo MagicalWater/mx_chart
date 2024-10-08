@@ -1,3 +1,6 @@
+## 2.2.0+1
+- Upgrade dependency version.
+
 ## 2.1.4+1
 - Fixed the problem that when long pressing the chart, the technical line is not updated to display the current long pressing data.
 - Fixed the problem that the boll line will not be displayed in some cases (when the period is not in MA).

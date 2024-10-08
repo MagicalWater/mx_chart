@@ -5,6 +5,7 @@ homepage: https://github.com/MagicalWater/mx_chart
 
 environment:
   sdk: ^3.5.3
+  flutter: '>=3.24.3'
 
 dependencies:
   flutter:
@@ -23,7 +24,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
