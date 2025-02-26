@@ -1,3 +1,6 @@
+## 2.3.0+1
+- Upgrade android gradle version.
+
 ## 2.2.0+1
 - Upgrade dependency version.
 
